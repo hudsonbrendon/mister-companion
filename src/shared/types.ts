@@ -116,6 +116,26 @@ export interface UpdateInfo {
   hasUpdate: boolean
 }
 
+export interface Wallpaper {
+  name: string
+  filename: string
+  active: boolean
+  imageUrl: string
+}
+
+export interface WallpapersData {
+  active: string
+  backgroundMode: number
+  wallpapers: Wallpaper[]
+}
+
+export interface Screenshot {
+  filename: string
+  game: string
+  core: string
+  imageUrl: string
+}
+
 export interface GameResult {
   name: string
   path: string
@@ -161,6 +181,12 @@ export const IPC = {
   raGameProgress: 'mister:raGameProgress',
   checkUpdate: 'app:checkUpdate',
   openExternal: 'app:openExternal',
+  getWallpapers: 'mister:getWallpapers',
+  setWallpaper: 'mister:setWallpaper',
+  unsetWallpaper: 'mister:unsetWallpaper',
+  getScreenshots: 'mister:getScreenshots',
+  takeScreenshot: 'mister:takeScreenshot',
+  deleteScreenshot: 'mister:deleteScreenshot',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

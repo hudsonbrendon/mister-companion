@@ -1,4 +1,4 @@
-import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry, GameResult, GameSystem, IndexStatus, RaRecentUnlock, RaGameDetail, UpdateInfo } from '@shared/types'
+import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry, GameResult, GameSystem, IndexStatus, RaRecentUnlock, RaGameDetail, UpdateInfo, WallpapersData, Screenshot } from '@shared/types'
 
 export interface RendererApi {
   listProfiles(): Promise<MisterProfile[]>
@@ -27,6 +27,12 @@ export interface RendererApi {
   raGameProgress(username: string, apiKey: string, gameId: number): Promise<RaGameDetail>
   checkUpdate(): Promise<UpdateInfo>
   openExternal(url: string): Promise<void>
+  getWallpapers(): Promise<WallpapersData>
+  setWallpaper(filename: string): Promise<void>
+  unsetWallpaper(): Promise<void>
+  getScreenshots(): Promise<Screenshot[]>
+  takeScreenshot(): Promise<void>
+  deleteScreenshot(filename: string): Promise<void>
 }
 
 // Forward every access to the live window.api so tests can swap window.api per-test

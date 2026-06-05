@@ -22,7 +22,13 @@ beforeEach(() => {
     raRecent: vi.fn().mockResolvedValue([]),
     raGameProgress: vi.fn().mockResolvedValue({ title: '', console: '', iconUrl: null, numAwarded: 0, numAchievements: 0, achievements: [] }),
     checkUpdate: vi.fn().mockResolvedValue({ current: '0.0.0', latest: '0.0.0', url: '', hasUpdate: false }),
-    openExternal: vi.fn().mockResolvedValue(undefined)
+    openExternal: vi.fn().mockResolvedValue(undefined),
+    getWallpapers: vi.fn().mockResolvedValue({ active: '', backgroundMode: 0, wallpapers: [] }),
+    setWallpaper: vi.fn().mockResolvedValue(undefined),
+    unsetWallpaper: vi.fn().mockResolvedValue(undefined),
+    getScreenshots: vi.fn().mockResolvedValue([]),
+    takeScreenshot: vi.fn().mockResolvedValue(undefined),
+    deleteScreenshot: vi.fn().mockResolvedValue(undefined)
   }
 })
 
@@ -34,6 +40,7 @@ describe('App shell', () => {
     expect(screen.getByRole('tab', { name: /control/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /scripts/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /files/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /media/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /retroachievements/i })).toBeInTheDocument()
     expect(screen.getByText('MiSTer Companion')).toBeInTheDocument()
   })

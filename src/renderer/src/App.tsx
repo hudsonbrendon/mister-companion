@@ -9,6 +9,7 @@ import { StatusTab } from './tabs/StatusTab'
 import { ControlTab } from './tabs/ControlTab'
 import { ScriptsTab } from './tabs/ScriptsTab'
 import { FilesTab } from './tabs/FilesTab'
+import { MediaTab } from './tabs/MediaTab'
 import { RATab } from './tabs/RATab'
 import { StatusProvider } from './hooks/status-context'
 
@@ -17,6 +18,7 @@ const SCREENS: Record<string, () => JSX.Element> = {
   control: () => <ControlTab />,
   scripts: () => <ScriptsTab />,
   files: () => <FilesTab />,
+  media: () => <MediaTab />,
   ra: () => <RATab />
 }
 

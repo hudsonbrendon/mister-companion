@@ -82,6 +82,26 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     return session.rest.sendKey(key)
   })
 
+  h(IPC.getWallpapers, () =>
+    session.rest?.getWallpapers() ?? Promise.resolve({ active: '', backgroundMode: 0, wallpapers: [] }))
+  h(IPC.setWallpaper, (filename: string) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.setWallpaper(filename)
+  })
+  h(IPC.unsetWallpaper, () => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.unsetWallpaper()
+  })
+  h(IPC.getScreenshots, () => session.rest?.getScreenshots() ?? Promise.resolve([]))
+  h(IPC.takeScreenshot, () => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.takeScreenshot()
+  })
+  h(IPC.deleteScreenshot, (filename: string) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.deleteScreenshot(filename)
+  })
+
   // Browse the SD card over SFTP (the MiSTer's Samba is NTLMv2-only, which the bundled
   // SMB client can't speak; SSH/SFTP uses modern auth and shares the same credentials).
   // The first arg (legacy share name) is ignored; paths are relative to /media/fat.

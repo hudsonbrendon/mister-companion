@@ -128,4 +128,23 @@ describe('RestClient', () => {
     expect(mock.calls[0].method).toBe('POST')
     expect(mock.calls[0].url).toBe('/api/controls/keyboard/up')
   })
+
+  it('getWallpapers filters macOS junk and builds absolute image URLs', async () => {
+    const mock = await startHttpMock([
+      { method: 'GET', path: '/api/wallpapers', body: {
+        active: 'a.png', backgroundMode: 2,
+        wallpapers: [
+          { name: 'A', filename: 'a.png', active: true },
+          { name: 'junk', filename: '._a.png', active: false }
+        ]
+      } }
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    const data = await client.getWallpapers()
+    expect(data.active).toBe('a.png')
+    expect(data.wallpapers).toHaveLength(1)
+    expect(data.wallpapers[0].filename).toBe('a.png')
+    expect(data.wallpapers[0].imageUrl).toBe(`http://127.0.0.1:${mock.port}/api/wallpapers/a.png`)
+  })
 })

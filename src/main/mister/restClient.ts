@@ -1,4 +1,4 @@
-import { MisterStatus, emptyStatus, GameResult, GameSystem } from '@shared/types'
+import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot } from '@shared/types'
 
 // mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
 // System info and the currently-running core/game live on two separate endpoints.
@@ -10,7 +10,9 @@ export const REST_PATHS = {
   search: '/api/games/search',
   searchSystems: '/api/games/search/systems',
   index: '/api/games/index',
-  control: '/api/controls/keyboard'
+  control: '/api/controls/keyboard',
+  wallpapers: '/api/wallpapers',
+  screenshots: '/api/screenshots'
 } as const
 
 interface RawDisk {
@@ -172,5 +174,72 @@ export class RestClient {
   // up/down/left/right/enter/back/menu/osd/home/user/reset/volume_up/volume_down.
   async sendKey(key: string): Promise<void> {
     await this.request(`${REST_PATHS.control}/${key}`, { method: 'POST' })
+  }
+
+  // Absolute URL the renderer can put in <img src> for media bytes.
+  private mediaUrl(path: string): string {
+    return `http://${this.host}:${this.port}${path}`
+  }
+
+  async getWallpapers(): Promise<WallpapersData> {
+    try {
+      const res = await this.request(REST_PATHS.wallpapers)
+      if (!res.ok) return { active: '', backgroundMode: 0, wallpapers: [] }
+      const body = (await res.json()) as {
+        active?: string
+        backgroundMode?: number
+        wallpapers?: { name?: string; filename?: string; active?: boolean }[]
+      }
+      const wallpapers: Wallpaper[] = (body.wallpapers ?? [])
+        .filter((w) => w.filename && !w.filename.startsWith('._'))
+        .map((w) => ({
+          name: w.name ?? w.filename ?? '',
+          filename: w.filename as string,
+          active: !!w.active,
+          imageUrl: this.mediaUrl(`${REST_PATHS.wallpapers}/${encodeURIComponent(w.filename as string)}`)
+        }))
+      return { active: body.active ?? '', backgroundMode: body.backgroundMode ?? 0, wallpapers }
+    } catch {
+      return { active: '', backgroundMode: 0, wallpapers: [] }
+    }
+  }
+
+  async setWallpaper(filename: string): Promise<void> {
+    await this.request(`${REST_PATHS.wallpapers}/${encodeURIComponent(filename)}`, { method: 'POST' })
+  }
+
+  async unsetWallpaper(): Promise<void> {
+    await this.request(REST_PATHS.wallpapers, { method: 'DELETE' })
+  }
+
+  async getScreenshots(): Promise<Screenshot[]> {
+    try {
+      const res = await this.request(REST_PATHS.screenshots)
+      if (!res.ok) return []
+      const body = (await res.json()) as unknown
+      const list = Array.isArray(body)
+        ? body
+        : Array.isArray((body as { screenshots?: unknown[] })?.screenshots)
+          ? (body as { screenshots: unknown[] }).screenshots
+          : []
+      return (list as { filename?: string; game?: string; core?: string }[])
+        .filter((s) => !!s.filename)
+        .map((s) => ({
+          filename: s.filename as string,
+          game: s.game ?? '',
+          core: s.core ?? '',
+          imageUrl: this.mediaUrl(`${REST_PATHS.screenshots}/${encodeURIComponent(s.filename as string)}`)
+        }))
+    } catch {
+      return []
+    }
+  }
+
+  async takeScreenshot(): Promise<void> {
+    await this.request(REST_PATHS.screenshots, { method: 'POST' })
+  }
+
+  async deleteScreenshot(filename: string): Promise<void> {
+    await this.request(`${REST_PATHS.screenshots}/${encodeURIComponent(filename)}`, { method: 'DELETE' })
   }
 }
