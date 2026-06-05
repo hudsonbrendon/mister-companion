@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 252 26% 9%;
+  --foreground: 250 30% 92%;
+  --card: 252 24% 13%;
+  --card-foreground: 250 30% 92%;
+  --primary: 252 100% 65%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 252 18% 20%;
+  --secondary-foreground: 250 30% 92%;
+  --muted: 252 16% 18%;
+  --muted-foreground: 250 12% 65%;
+  --accent: 252 30% 22%;
+  --accent-foreground: 250 30% 96%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --pink: 327 100% 68%;
+  --pink-foreground: 0 0% 100%;
+  --border: 252 18% 22%;
+  --input: 252 18% 24%;
+  --ring: 252 100% 65%;
+  --radius: 0.75rem;
+}
+
+* { border-color: hsl(var(--border)); }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle radial purple ambience behind the app */
+#root {
+  background:
+    radial-gradient(1100px 700px at 12% -10%, hsl(252 60% 22% / 0.5), transparent 60%),
+    radial-gradient(900px 600px at 110% 0%, hsl(327 60% 24% / 0.28), transparent 55%);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
