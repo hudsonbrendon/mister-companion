@@ -6,6 +6,7 @@ import { ProfileStore } from './store'
 import { scanHosts, subnetHosts, browseMdns, mergeDevices } from './mister/discovery'
 import { SCRIPT_CATALOG, runScript } from './mister/scripts'
 import { RaWebClient } from './mister/raWeb'
+import { localIpv4 } from './net'
 
 export interface Session {
   profileStore: ProfileStore
@@ -45,8 +46,11 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
 
   h(IPC.discover, async (localIp: string) => {
     const port = session.current?.restPort ?? 8182
+    // Prefer the real LAN IP detected in the main process; the renderer's value is
+    // unreliable in a packaged app (window.location.hostname is empty over file://).
+    const local = localIpv4() ?? localIp
     const [scan, mdns] = await Promise.all([
-      scanHosts(subnetHosts(localIp), port, 800),
+      scanHosts(subnetHosts(local), port, 800),
       browseMdns().catch(() => [])
     ])
     return mergeDevices(scan, mdns)

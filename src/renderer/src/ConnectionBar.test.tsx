@@ -19,16 +19,20 @@ beforeEach(() => {
 })
 
 describe('ConnectionBar', () => {
-  it('opens a centered modal listing discovered devices and connects to a chosen one', async () => {
+  it('opens a modal, selects a device, and connects with the chosen credentials', async () => {
     render(<ConnectionBar localIp="192.168.31.20" />)
     fireEvent.click(screen.getByRole('button', { name: /discover/i }))
     // Discovered devices show up inside a modal dialog, not an inline list.
     const dialog = await screen.findByRole('dialog')
     expect(dialog).toHaveTextContent(/discovered misters/i)
     await waitFor(() => screen.getByText(/192\.168\.31\.50/))
+    // Selecting a device opens a credentials step (username prefilled with root).
     fireEvent.click(screen.getByText(/192\.168\.31\.50/))
+    const connectBtn = await screen.findByRole('button', { name: /^connect$/i })
+    fireEvent.click(connectBtn)
     await waitFor(() => expect(connect).toHaveBeenCalled())
     expect(connect.mock.calls[0][0].host).toBe('192.168.31.50')
+    expect(connect.mock.calls[0][0].sshUser).toBe('root')
     await waitFor(() => expect(toastSuccess).toHaveBeenCalled())
   })
 

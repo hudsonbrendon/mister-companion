@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Radar, Loader2, Cpu, SearchX } from 'lucide-react'
+import { Radar, Loader2, Cpu, SearchX, ChevronLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from './api'
 import { DiscoveredDevice, MisterProfile } from '@shared/types'
 import { Button } from './components/ui/button'
+import { Input } from './components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,9 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<DiscoveredDevice | null>(null)
+  const [username, setUsername] = useState('root')
+  const [password, setPassword] = useState('1')
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -27,6 +31,7 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
 
   const discover = async () => {
     setOpen(true)
+    setSelected(null)
     setBusy(true)
     setFound([])
     try {
@@ -34,6 +39,12 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
     } finally {
       setBusy(false)
     }
+  }
+
+  const selectDevice = (d: DiscoveredDevice) => {
+    setSelected(d)
+    setUsername('root')
+    setPassword('1')
   }
 
   const connectProfile = async (profile: MisterProfile) => {
@@ -52,17 +63,18 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
     }
   }
 
-  const connectDevice = (d: DiscoveredDevice) =>
+  const connectSelected = () => {
+    if (!selected) return
     connectProfile({
-      id: d.host,
-      name: d.hostname ?? d.host,
-      host: d.host,
+      id: selected.host,
+      name: selected.hostname ?? selected.host,
+      host: selected.host,
       restPort: 8182,
       sshPort: 22,
-      // MiSTer's default Linux credentials — needed for SFTP file browsing and scripts.
-      sshUser: 'root',
-      sshPassword: '1'
+      sshUser: username,
+      sshPassword: password
     })
+  }
 
   return (
     <div className="space-y-2 rounded-lg border border-border bg-background/40 p-3">
@@ -88,47 +100,81 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setSelected(null) }}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Radar className="size-5 text-primary" /> {t('connection.discoveredTitle')}
-            </DialogTitle>
-            <DialogDescription>{t('connection.discoveredDesc')}</DialogDescription>
-          </DialogHeader>
-
-          {busy ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-sm text-muted-foreground">
-              <Loader2 className="size-7 animate-spin text-primary" />
-              {t('connection.scanningNetwork')}
-            </div>
-          ) : found.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
-              <SearchX className="size-7" />
-              {t('connection.noneFound')}
-              <Button onClick={discover} size="sm" variant="secondary">
-                <Radar /> {t('connection.scanAgain')}
-              </Button>
-            </div>
+          {selected ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{t('connection.connectTo', { name: selected.hostname ?? selected.host })}</DialogTitle>
+                <DialogDescription className="font-mono">{selected.host}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="block space-y-1">
+                  <span className="text-xs text-muted-foreground">{t('connection.username')}</span>
+                  <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs text-muted-foreground">{t('connection.password')}</span>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && connectSelected()}
+                  />
+                </label>
+                <div className="flex justify-between gap-2 pt-1">
+                  <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+                    <ChevronLeft /> {t('connection.back')}
+                  </Button>
+                  <Button size="sm" onClick={connectSelected}>
+                    {t('connection.connect')}
+                  </Button>
+                </div>
+              </div>
+            </>
           ) : (
-            <ul className="space-y-2">
-              {found.map((d) => (
-                <li key={d.host}>
-                  <button
-                    onClick={() => connectDevice(d)}
-                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-card/60 p-3 text-left transition-all hover:border-primary hover:shadow-glow"
-                  >
-                    <div className="grid size-9 place-items-center rounded-md bg-primary/15 text-primary">
-                      <Cpu className="size-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{d.hostname ?? d.host}</div>
-                      <div className="font-mono text-xs text-muted-foreground">{d.host}</div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Radar className="size-5 text-primary" /> {t('connection.discoveredTitle')}
+                </DialogTitle>
+                <DialogDescription>{t('connection.discoveredDesc')}</DialogDescription>
+              </DialogHeader>
+
+              {busy ? (
+                <div className="flex flex-col items-center gap-3 py-10 text-sm text-muted-foreground">
+                  <Loader2 className="size-7 animate-spin text-primary" />
+                  {t('connection.scanningNetwork')}
+                </div>
+              ) : found.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
+                  <SearchX className="size-7" />
+                  {t('connection.noneFound')}
+                  <Button onClick={discover} size="sm" variant="secondary">
+                    <Radar /> {t('connection.scanAgain')}
+                  </Button>
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {found.map((d) => (
+                    <li key={d.host}>
+                      <button
+                        onClick={() => selectDevice(d)}
+                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card/60 p-3 text-left transition-all hover:border-primary hover:shadow-glow"
+                      >
+                        <div className="grid size-9 place-items-center rounded-md bg-primary/15 text-primary">
+                          <Cpu className="size-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate font-medium">{d.hostname ?? d.host}</div>
+                          <div className="font-mono text-xs text-muted-foreground">{d.host}</div>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
