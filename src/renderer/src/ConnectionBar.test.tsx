@@ -19,9 +19,12 @@ beforeEach(() => {
 })
 
 describe('ConnectionBar', () => {
-  it('discovers devices and connects to a chosen one, toasting success', async () => {
+  it('opens a centered modal listing discovered devices and connects to a chosen one', async () => {
     render(<ConnectionBar localIp="192.168.31.20" />)
     fireEvent.click(screen.getByRole('button', { name: /discover/i }))
+    // Discovered devices show up inside a modal dialog, not an inline list.
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent(/discovered misters/i)
     await waitFor(() => screen.getByText(/192\.168\.31\.50/))
     fireEvent.click(screen.getByText(/192\.168\.31\.50/))
     await waitFor(() => expect(connect).toHaveBeenCalled())
