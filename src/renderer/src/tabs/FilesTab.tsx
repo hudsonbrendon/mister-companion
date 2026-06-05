@@ -41,7 +41,7 @@ export function FilesTab(): JSX.Element {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Files</h1>
-        <p className="text-sm text-muted-foreground">Browse the SD card over SMB</p>
+        <p className="text-sm text-muted-foreground">Browse the SD card over SSH</p>
       </div>
 
       <Card>

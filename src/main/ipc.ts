@@ -6,7 +6,6 @@ import { ProfileStore } from './store'
 import { scanHosts, subnetHosts, browseMdns, mergeDevices } from './mister/discovery'
 import { SCRIPT_CATALOG, runScript } from './mister/scripts'
 import { RaWebClient } from './mister/raWeb'
-import { SmbBrowser } from './mister/smb'
 
 export interface Session {
   profileStore: ProfileStore
@@ -63,9 +62,12 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
   h(IPC.raSummary, (username: string, apiKey: string) =>
     new RaWebClient(username, apiKey).getSummary())
 
-  h(IPC.smbList, (share: string, path: string) => {
-    const p = session.current
-    if (!p) throw new Error('not connected')
-    return new SmbBrowser({ host: p.host, share, username: p.sshUser ?? 'root', password: p.sshPassword }).list(path)
+  // Browse the SD card over SFTP (the MiSTer's Samba is NTLMv2-only, which the bundled
+  // SMB client can't speak; SSH/SFTP uses modern auth and shares the same credentials).
+  // The first arg (legacy share name) is ignored; paths are relative to /media/fat.
+  h(IPC.smbList, (_share: string, path: string) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    const full = path ? `/media/fat/${path}` : '/media/fat'
+    return session.ssh.listDir(full)
   })
 }

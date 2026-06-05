@@ -17,7 +17,8 @@ but reimplemented in TypeScript for the Electron runtime.
 - mrext WebSocket (live core/game updates)
 - SSH via `ssh2` (telemetry + script execution)
 - LAN discovery: subnet port-scan of 8182 + mDNS (bonjour-service)
-- SMB via `@marsaud/smb2` (browse the SD card / `/media/fat`)
+- SSH/SFTP via `ssh2` (browse the SD card / `/media/fat`; SMB was dropped — the bundled
+  `@marsaud/smb2` only speaks NTLMv1 and the MiSTer's Samba is NTLMv2-only)
 
 ## Commands
 - `npm run dev` — run app in dev
@@ -40,6 +41,12 @@ REST + WebSocket confirmed against a real MiSTer. The mrext API base is `http://
 - **Reboot:** `POST /api/settings/system/reboot`
 - **WebSocket** `ws://<ip>:8182/api/ws` sends plain **text tokens** (not JSON):
   `coreRunning:<CORE>`, `gameRunning:<GAME>` (empty when none), `indexStatus:...` (ignored).
+
+### SSH / Files (verified)
+- SSH + SFTP work with the MiSTer's default credentials **root / 1** (NTLMv2-only Samba
+  rejects the bundled SMB client, so files are browsed over SFTP under `/media/fat`).
+- The connect flow defaults discovered devices to `root`/`1`; a credentials UI to override
+  is a sensible follow-up.
 
 ### Still pending verification
 - PROBE_COMMAND paths (/proc/uptime, /proc/loadavg, /proc/meminfo MemAvailable, thermal_zone0)

@@ -43,7 +43,16 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
   }
 
   const connectDevice = (d: DiscoveredDevice) =>
-    connectProfile({ id: d.host, name: d.hostname ?? d.host, host: d.host, restPort: 8182, sshPort: 22 })
+    connectProfile({
+      id: d.host,
+      name: d.hostname ?? d.host,
+      host: d.host,
+      restPort: 8182,
+      sshPort: 22,
+      // MiSTer's default Linux credentials — needed for SFTP file browsing and scripts.
+      sshUser: 'root',
+      sshPassword: '1'
+    })
 
   return (
     <div className="space-y-2 rounded-lg border border-border bg-background/40 p-3">
