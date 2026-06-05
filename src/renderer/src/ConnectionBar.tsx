@@ -29,6 +29,9 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
   const connectProfile = async (profile: MisterProfile) => {
     try {
       await api.connect(profile)
+      // Start (or restart) the live status feed now that a session exists — the feed
+      // started on app mount was a no-op because nothing was connected yet.
+      await api.startStatusFeed()
       setConnected(profile.host)
       setError(null)
       toast.success(`Connected to ${profile.name}`, { description: profile.host })

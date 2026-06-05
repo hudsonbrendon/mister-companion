@@ -14,7 +14,7 @@ beforeEach(() => {
   connect.mockClear()
   discover.mockClear()
   toastSuccess.mockClear()
-  const api = { listProfiles: vi.fn().mockResolvedValue([]), discover, connect, saveProfile: vi.fn().mockResolvedValue([]) }
+  const api = { listProfiles: vi.fn().mockResolvedValue([]), discover, connect, saveProfile: vi.fn().mockResolvedValue([]), startStatusFeed: vi.fn().mockResolvedValue(true) }
   ;(globalThis as any).window.api = api
 })
 
