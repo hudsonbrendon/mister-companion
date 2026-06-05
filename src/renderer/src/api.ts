@@ -1,4 +1,4 @@
-import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry } from '@shared/types'
+import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry, GameResult, GameSystem, IndexStatus } from '@shared/types'
 
 export interface RendererApi {
   listProfiles(): Promise<MisterProfile[]>
@@ -18,6 +18,10 @@ export interface RendererApi {
   startStatusFeed(): Promise<boolean>
   onStatusUpdate(cb: (s: MisterStatus) => void): () => void
   onScriptOutput(cb: (o: { id: string; chunk: string }) => void): () => void
+  searchSystems(): Promise<GameSystem[]>
+  searchGames(query: string, system: string): Promise<GameResult[]>
+  generateIndex(): Promise<void>
+  onIndexStatus(cb: (s: IndexStatus) => void): () => void
 }
 
 // Forward every access to the live window.api so tests can swap window.api per-test

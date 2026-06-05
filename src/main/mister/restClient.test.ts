@@ -89,4 +89,32 @@ describe('RestClient', () => {
     expect(mock.calls[0].method).toBe('POST')
     expect(mock.calls[0].url).toBe('/api/settings/system/reboot')
   })
+
+  it('searchGames normalizes body.data (array) shape', async () => {
+    const mock = await startHttpMock([
+      {
+        method: 'POST',
+        path: '/api/games/search',
+        body: { data: [{ name: 'Zelda', path: '/x', system: { id: 'SNES', name: 'SNES' } }] }
+      }
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    const results = await client.searchGames('Zelda')
+    expect(results).toEqual([{ name: 'Zelda', path: '/x', systemId: 'SNES', systemName: 'SNES' }])
+  })
+
+  it('searchGames normalizes body.data.items shape', async () => {
+    const mock = await startHttpMock([
+      {
+        method: 'POST',
+        path: '/api/games/search',
+        body: { data: { items: [{ name: 'Zelda', path: '/x', system: { id: 'SNES', name: 'SNES' } }] } }
+      }
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    const results = await client.searchGames('Zelda')
+    expect(results).toEqual([{ name: 'Zelda', path: '/x', systemId: 'SNES', systemName: 'SNES' }])
+  })
 })

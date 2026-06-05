@@ -4,22 +4,45 @@ import { ControlTab } from './ControlTab'
 
 const launchGame = vi.fn().mockResolvedValue(undefined)
 const reboot = vi.fn().mockResolvedValue(undefined)
+const searchSystems = vi.fn().mockResolvedValue([{ id: 'SNES', name: 'SNES' }])
+const searchGames = vi.fn().mockResolvedValue([
+  { name: 'Zelda', path: '/media/fat/games/SNES/Zelda.sfc', systemId: 'SNES', systemName: 'SNES' }
+])
+const generateIndex = vi.fn().mockResolvedValue(undefined)
+const onIndexStatus = vi.fn().mockReturnValue(() => {})
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 beforeEach(() => {
   launchGame.mockClear()
   reboot.mockClear()
-  ;(globalThis as any).window.api = { launchGame, reboot }
+  searchSystems.mockClear()
+  searchGames.mockClear()
+  generateIndex.mockClear()
+  onIndexStatus.mockClear()
+  ;(globalThis as any).window.api = {
+    launchGame,
+    reboot,
+    searchSystems,
+    searchGames,
+    generateIndex,
+    onIndexStatus
+  }
 })
 
 describe('ControlTab', () => {
-  it('launches the typed game path', () => {
+  it('searches for games and launches via the result list', async () => {
     render(<ControlTab />)
-    fireEvent.change(screen.getByPlaceholderText(/path to game/i), {
-      target: { value: '/media/fat/games/SNES/Zelda.sfc' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: /^launch$/i }))
+
+    // Wait for the search input to appear (index is loaded)
+    const input = await screen.findByPlaceholderText(/search games/i)
+    fireEvent.change(input, { target: { value: 'Zelda' } })
+
+    // Wait for the debounce + result to appear
+    const launchBtn = await screen.findByRole('button', { name: /launch/i })
+    expect(screen.getByText('Zelda')).toBeInTheDocument()
+    fireEvent.click(launchBtn)
+
     expect(launchGame).toHaveBeenCalledWith('/media/fat/games/SNES/Zelda.sfc')
   })
 

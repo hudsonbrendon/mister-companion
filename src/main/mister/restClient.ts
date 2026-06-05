@@ -1,4 +1,4 @@
-import { MisterStatus, emptyStatus } from '@shared/types'
+import { MisterStatus, emptyStatus, GameResult, GameSystem } from '@shared/types'
 
 // mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
 // System info and the currently-running core/game live on two separate endpoints.
@@ -6,7 +6,10 @@ export const REST_PATHS = {
   sysinfo: '/api/sysinfo',
   playing: '/api/games/playing',
   launch: '/api/games/launch',
-  reboot: '/api/settings/system/reboot'
+  reboot: '/api/settings/system/reboot',
+  search: '/api/games/search',
+  searchSystems: '/api/games/search/systems',
+  index: '/api/games/index'
 } as const
 
 interface RawDisk {
@@ -32,6 +35,12 @@ interface RawPlaying {
   systemName?: string
   game?: string
   gameName?: string
+}
+
+interface RawGameItem {
+  name?: string
+  path?: string
+  system?: { id?: string; name?: string }
 }
 
 // mrext returns "" for an absent core/game/etc.; treat empty strings as null.
@@ -108,5 +117,53 @@ export class RestClient {
 
   async reboot(): Promise<void> {
     await this.request(REST_PATHS.reboot, { method: 'POST' })
+  }
+
+  async searchSystems(): Promise<GameSystem[]> {
+    try {
+      const res = await this.request(REST_PATHS.searchSystems)
+      if (!res.ok) return []
+      const body = (await res.json()) as { systems?: GameSystem[] }
+      return body.systems ?? []
+    } catch {
+      return []
+    }
+  }
+
+  async searchGames(query: string, system = 'all'): Promise<GameResult[]> {
+    try {
+      const res = await this.request(REST_PATHS.search, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ query, system })
+      })
+      if (!res.ok) return []
+      const body = (await res.json()) as {
+        data?: GameResult[] | { items?: RawGameItem[] }
+        items?: RawGameItem[]
+      }
+      let raw: RawGameItem[]
+      if (Array.isArray(body.data)) {
+        raw = body.data as RawGameItem[]
+      } else if (Array.isArray((body.data as { items?: RawGameItem[] } | undefined)?.items)) {
+        raw = (body.data as { items: RawGameItem[] }).items
+      } else if (Array.isArray(body.items)) {
+        raw = body.items
+      } else {
+        raw = []
+      }
+      return raw.map((item) => ({
+        name: item.name ?? '',
+        path: item.path ?? '',
+        systemId: item.system?.id ?? '',
+        systemName: item.system?.name ?? ''
+      }))
+    } catch {
+      return []
+    }
+  }
+
+  async generateIndex(): Promise<void> {
+    await this.request(REST_PATHS.index, { method: 'POST' })
   }
 }

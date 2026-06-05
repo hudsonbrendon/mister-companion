@@ -26,6 +26,14 @@ const api = {
     const listener = (_e: unknown, o: unknown) => cb(o)
     ipcRenderer.on(IPC.scriptOutput, listener)
     return () => ipcRenderer.removeListener(IPC.scriptOutput, listener)
+  },
+  searchSystems: () => ipcRenderer.invoke(IPC.searchSystems),
+  searchGames: (query: string, system: string) => ipcRenderer.invoke(IPC.searchGames, query, system),
+  generateIndex: () => ipcRenderer.invoke(IPC.generateIndex),
+  onIndexStatus: (cb: (s: unknown) => void) => {
+    const listener = (_e: unknown, s: unknown) => cb(s)
+    ipcRenderer.on(IPC.indexStatus, listener)
+    return () => ipcRenderer.removeListener(IPC.indexStatus, listener)
   }
 }
 

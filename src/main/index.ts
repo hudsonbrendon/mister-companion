@@ -107,6 +107,14 @@ app.whenReady().then(() => {
     updateTray(status)
     ws = new WsClient(session.current.host, session.current.restPort)
     ws.listen((raw) => {
+      if (raw.startsWith('indexStatus:')) {
+        const p = raw.slice('indexStatus:'.length).split(',')
+        session.emit?.(IPC.indexStatus, {
+          exists: p[0] === 'y', indexing: p[1] === 'y',
+          total: Number(p[2]) || 0, current: Number(p[3]) || 0, desc: (p[4] ?? '').trim()
+        })
+        return
+      }
       status = applyWsMessage(raw, status)
       session.emit?.(IPC.statusUpdate, status)
       updateTray(status)

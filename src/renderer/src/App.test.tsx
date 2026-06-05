@@ -12,7 +12,11 @@ beforeEach(() => {
     onStatusUpdate: vi.fn().mockReturnValue(() => {}),
     onScriptOutput: vi.fn().mockReturnValue(() => {}),
     listScripts: vi.fn().mockResolvedValue([]),
-    smbList: vi.fn().mockResolvedValue([])
+    smbList: vi.fn().mockResolvedValue([]),
+    searchSystems: vi.fn().mockResolvedValue([]),
+    searchGames: vi.fn().mockResolvedValue([]),
+    onIndexStatus: vi.fn().mockReturnValue(() => {}),
+    generateIndex: vi.fn()
   }
 })
 

@@ -66,6 +66,14 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
   h(IPC.raSummary, (username: string, apiKey: string) =>
     new RaWebClient(username, apiKey).getSummary())
 
+  h(IPC.searchSystems, () => session.rest?.searchSystems() ?? Promise.resolve([]))
+  h(IPC.searchGames, (query: string, system: string) =>
+    session.rest?.searchGames(query, system) ?? Promise.resolve([]))
+  h(IPC.generateIndex, () => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.generateIndex()
+  })
+
   // Browse the SD card over SFTP (the MiSTer's Samba is NTLMv2-only, which the bundled
   // SMB client can't speak; SSH/SFTP uses modern auth and shares the same credentials).
   // The first arg (legacy share name) is ignored; paths are relative to /media/fat.

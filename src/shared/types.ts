@@ -79,6 +79,27 @@ export interface SmbEntry {
   size: number
 }
 
+export interface GameResult {
+  name: string
+  path: string
+  systemId: string
+  systemName: string
+}
+
+export interface GameSystem {
+  id: string
+  name: string
+  category?: string
+}
+
+export interface IndexStatus {
+  exists: boolean
+  indexing: boolean
+  current: number
+  total: number
+  desc: string
+}
+
 export const IPC = {
   // request/response (invoke/handle)
   listProfiles: 'profiles:list',
@@ -95,7 +116,11 @@ export const IPC = {
   runScript: 'mister:runScript',
   raSummary: 'mister:raSummary',
   smbList: 'mister:smbList',
+  searchGames: 'mister:searchGames',
+  searchSystems: 'mister:searchSystems',
+  generateIndex: 'mister:generateIndex',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
-  scriptOutput: 'mister:scriptOutput'
+  scriptOutput: 'mister:scriptOutput',
+  indexStatus: 'mister:indexStatus'
 } as const
