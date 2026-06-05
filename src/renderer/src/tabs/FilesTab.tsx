@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowUp, Folder, File as FileIcon, AlertTriangle, Loader2, Trash2, Save } from 'lucide-react'
+import {
+  ArrowUp,
+  Folder,
+  File as FileIcon,
+  AlertTriangle,
+  Loader2,
+  Trash2,
+  Save,
+  Download,
+  Upload,
+  Archive
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { SmbEntry } from '@shared/types'
@@ -85,6 +96,36 @@ export function FilesTab(): JSX.Element {
     }
   }
 
+  const download = async (entry: SmbEntry) => {
+    try {
+      const saved = await api.downloadFile(full(entry.name), entry.name)
+      if (saved) toast.success(t('files.downloaded'), { description: entry.name })
+    } catch (e) {
+      toast.error(String(e))
+    }
+  }
+
+  const upload = async () => {
+    try {
+      const n = await api.uploadFiles(path)
+      if (n > 0) {
+        toast.success(t('files.uploaded', { n }))
+        load(path)
+      }
+    } catch (e) {
+      toast.error(String(e))
+    }
+  }
+
+  const backup = async () => {
+    try {
+      const saved = await api.backupSaves()
+      if (saved) toast.success(t('files.backupDone'))
+    } catch (e) {
+      toast.error(String(e))
+    }
+  }
+
   const up = () => setPath(path.split('/').slice(0, -1).join('/'))
   const crumbs = path ? path.split('/') : []
 
@@ -106,7 +147,15 @@ export function FilesTab(): JSX.Element {
               <span key={i}>/{c}</span>
             ))}
           </div>
-          {loading && <Loader2 className="ml-auto size-4 animate-spin text-muted-foreground" />}
+          {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+          <div className="ml-auto flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={upload}>
+              <Upload className="size-4" /> {t('files.upload')}
+            </Button>
+            <Button size="sm" variant="outline" onClick={backup}>
+              <Archive className="size-4" /> {t('files.backupSaves')}
+            </Button>
+          </div>
         </div>
 
         <CardContent className="p-0">
@@ -135,6 +184,17 @@ export function FilesTab(): JSX.Element {
                         <span className="font-mono text-xs text-muted-foreground">{gb(e.size)}</span>
                       )}
                     </button>
+                    {!e.isDirectory && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
+                        onClick={() => download(e)}
+                        aria-label={`${t('files.download')} ${e.name}`}
+                      >
+                        <Download className="size-4 text-muted-foreground" />
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"

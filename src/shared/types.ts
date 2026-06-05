@@ -190,6 +190,9 @@ export const IPC = {
   readFile: 'mister:readFile',
   writeFile: 'mister:writeFile',
   deleteFile: 'mister:deleteFile',
+  downloadFile: 'mister:downloadFile',
+  uploadFiles: 'mister:uploadFiles',
+  backupSaves: 'mister:backupSaves',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

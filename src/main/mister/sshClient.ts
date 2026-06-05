@@ -124,6 +124,28 @@ export class SshClient {
     })
   }
 
+  // Download a remote file to a local path (binary-safe).
+  async downloadFile(remotePath: string, localPath: string): Promise<void> {
+    const c = await this.connect()
+    return new Promise((resolve, reject) => {
+      c.sftp((err, sftp) => {
+        if (err) return reject(err)
+        sftp.fastGet(remotePath, localPath, (e) => (e ? reject(e) : resolve()))
+      })
+    })
+  }
+
+  // Upload a local file to a remote path (binary-safe).
+  async uploadFile(localPath: string, remotePath: string): Promise<void> {
+    const c = await this.connect()
+    return new Promise((resolve, reject) => {
+      c.sftp((err, sftp) => {
+        if (err) return reject(err)
+        sftp.fastPut(localPath, remotePath, (e) => (e ? reject(e) : resolve()))
+      })
+    })
+  }
+
   async close(): Promise<void> {
     this.client?.end()
     this.client = null

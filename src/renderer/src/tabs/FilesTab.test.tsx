@@ -6,6 +6,9 @@ const smbList = vi.fn()
 const readFile = vi.fn().mockResolvedValue('[MiSTer]\nvideo_mode=8')
 const writeFile = vi.fn().mockResolvedValue(undefined)
 const deleteFile = vi.fn().mockResolvedValue(undefined)
+const downloadFile = vi.fn().mockResolvedValue('/tmp/MiSTer.ini')
+const uploadFiles = vi.fn().mockResolvedValue(2)
+const backupSaves = vi.fn().mockResolvedValue('/tmp/mister-saves.tar.gz')
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
@@ -14,11 +17,16 @@ beforeEach(() => {
   readFile.mockClear()
   writeFile.mockClear()
   deleteFile.mockClear()
+  downloadFile.mockClear()
+  uploadFiles.mockClear()
+  backupSaves.mockClear()
   smbList.mockResolvedValue([
     { name: 'games', isDirectory: true, size: 0 },
     { name: 'MiSTer.ini', isDirectory: false, size: 2048 }
   ])
-  ;(globalThis as any).window.api = { smbList, readFile, writeFile, deleteFile }
+  ;(globalThis as any).window.api = {
+    smbList, readFile, writeFile, deleteFile, downloadFile, uploadFiles, backupSaves
+  }
 })
 
 describe('FilesTab', () => {
@@ -50,5 +58,19 @@ describe('FilesTab', () => {
     expect(deleteFile).not.toHaveBeenCalled()
     fireEvent.click(confirm)
     await waitFor(() => expect(deleteFile).toHaveBeenCalledWith('MiSTer.ini', false))
+  })
+
+  it('downloads a file, uploads to the current dir, and backs up saves', async () => {
+    render(<FilesTab />)
+    await waitFor(() => screen.getByText('MiSTer.ini'))
+
+    fireEvent.click(screen.getByRole('button', { name: /download MiSTer\.ini/i }))
+    await waitFor(() => expect(downloadFile).toHaveBeenCalledWith('MiSTer.ini', 'MiSTer.ini'))
+
+    fireEvent.click(screen.getByRole('button', { name: /^upload$/i }))
+    await waitFor(() => expect(uploadFiles).toHaveBeenCalledWith(''))
+
+    fireEvent.click(screen.getByRole('button', { name: /backup saves/i }))
+    await waitFor(() => expect(backupSaves).toHaveBeenCalled())
   })
 })

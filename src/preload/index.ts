@@ -44,6 +44,10 @@ const api = {
   readFile: (path: string) => ipcRenderer.invoke(IPC.readFile, path),
   writeFile: (path: string, content: string) => ipcRenderer.invoke(IPC.writeFile, path, content),
   deleteFile: (path: string, isDir: boolean) => ipcRenderer.invoke(IPC.deleteFile, path, isDir),
+  downloadFile: (path: string, suggestedName: string) =>
+    ipcRenderer.invoke(IPC.downloadFile, path, suggestedName),
+  uploadFiles: (dir: string) => ipcRenderer.invoke(IPC.uploadFiles, dir),
+  backupSaves: () => ipcRenderer.invoke(IPC.backupSaves),
   onIndexStatus: (cb: (s: unknown) => void) => {
     const listener = (_e: unknown, s: unknown) => cb(s)
     ipcRenderer.on(IPC.indexStatus, listener)

@@ -36,6 +36,9 @@ export interface RendererApi {
   readFile(path: string): Promise<string>
   writeFile(path: string, content: string): Promise<void>
   deleteFile(path: string, isDir: boolean): Promise<void>
+  downloadFile(path: string, suggestedName: string): Promise<string | null>
+  uploadFiles(dir: string): Promise<number>
+  backupSaves(): Promise<string | null>
 }
 
 // Forward every access to the live window.api so tests can swap window.api per-test

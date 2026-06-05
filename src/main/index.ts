@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } from 'electron'
-import { join } from 'node:path'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell, dialog } from 'electron'
+import { join, basename } from 'node:path'
 import { createHandlers, Session } from './ipc'
 import { ProfileStore } from './store'
 import { RestClient } from './mister/restClient'
@@ -119,6 +119,42 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC.checkUpdate, () => checkUpdate())
   ipcMain.handle(IPC.openExternal, (_e, url: string) => shell.openExternal(url))
+
+  // Download a remote SD-card file to a local path the user picks. Returns the saved
+  // path, or null if the user cancelled the save dialog.
+  ipcMain.handle(IPC.downloadFile, async (_e, relPath: string, suggestedName: string) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    const r = await dialog.showSaveDialog({ defaultPath: suggestedName })
+    if (r.canceled || !r.filePath) return null
+    await session.ssh.downloadFile(`/media/fat/${relPath}`, r.filePath)
+    return r.filePath
+  })
+
+  // Upload one or more local files into the current remote directory. Returns the count
+  // uploaded (0 if the user cancelled the open dialog).
+  ipcMain.handle(IPC.uploadFiles, async (_e, relDir: string) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    const r = await dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })
+    if (r.canceled || r.filePaths.length === 0) return 0
+    for (const fp of r.filePaths) {
+      await session.ssh.uploadFile(fp, `/media/fat/${relDir ? relDir + '/' : ''}${basename(fp)}`)
+    }
+    return r.filePaths.length
+  })
+
+  // Backup the saves + savestates folders as a single .tar.gz downloaded locally.
+  // Read-only on the device (tars to /tmp, downloads, then removes the temp tarball).
+  ipcMain.handle(IPC.backupSaves, async () => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    const r = await dialog.showSaveDialog({ defaultPath: 'mister-saves.tar.gz' })
+    if (r.canceled || !r.filePath) return null
+    await session.ssh.exec(
+      'tar czf /tmp/mc-saves.tar.gz -C /media/fat saves savestates 2>/dev/null || true'
+    )
+    await session.ssh.downloadFile('/tmp/mc-saves.tar.gz', r.filePath)
+    await session.ssh.exec('rm -f /tmp/mc-saves.tar.gz')
+    return r.filePath
+  })
 
   // When a profile connects, start a WS feed that pushes live status to the renderer
   // and refreshes the tray menu.

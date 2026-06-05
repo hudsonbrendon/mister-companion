@@ -33,7 +33,9 @@ function fakeSftpFactory(entries: { filename: string; dir: boolean; size: number
         },
         readFile: (_p: string, rcb: (e: unknown, data: Buffer) => void) => rcb(null, Buffer.from('hello=1')),
         writeFile: (_p: string, _c: string, wcb: (e: unknown) => void) => wcb(null),
-        unlink: (_p: string, ucb: (e: unknown) => void) => ucb(null)
+        unlink: (_p: string, ucb: (e: unknown) => void) => ucb(null),
+        fastGet: (_r: string, _l: string, gcb: (e: unknown) => void) => gcb(null),
+        fastPut: (_l: string, _r: string, pcb: (e: unknown) => void) => pcb(null)
       })
     }
     client.end = () => client.emit('close')
@@ -86,6 +88,16 @@ describe('SshClient', () => {
     expect(await ssh.readFile('/media/fat/MiSTer.ini')).toBe('hello=1')
     await expect(ssh.writeFile('/media/fat/MiSTer.ini', 'x=2')).resolves.toBeUndefined()
     await expect(ssh.deleteEntry('/media/fat/x.txt', false)).resolves.toBeUndefined()
+    await ssh.close()
+  })
+
+  it('downloadFile/uploadFile transfer over SFTP', async () => {
+    const ssh = new SshClient(
+      { host: '127.0.0.1', port: 22, username: 'root', password: '1' },
+      fakeSftpFactory([])
+    )
+    await expect(ssh.downloadFile('/media/fat/MiSTer.ini', '/tmp/x.ini')).resolves.toBeUndefined()
+    await expect(ssh.uploadFile('/tmp/x.ini', '/media/fat/MiSTer.ini')).resolves.toBeUndefined()
     await ssh.close()
   })
 })
