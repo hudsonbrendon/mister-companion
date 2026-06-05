@@ -6,6 +6,12 @@ directories:
 files:
   - out/**/*
   - package.json
+# Tray icons must exist at runtime (build/ is a build-resource, not bundled by default).
+extraResources:
+  - from: build/tray.png
+    to: tray.png
+  - from: build/tray@2x.png
+    to: tray@2x.png
 afterPack: build/afterPack.js
 mac:
   target: [dmg]

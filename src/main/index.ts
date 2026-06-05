@@ -1,14 +1,17 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron'
 import { join } from 'node:path'
 import { createHandlers, Session } from './ipc'
 import { ProfileStore } from './store'
 import { RestClient } from './mister/restClient'
 import { WsClient } from './mister/wsClient'
 import { applyWsMessage } from './mister/wsReducer'
-import { IPC, emptyStatus } from '@shared/types'
+import { IPC, emptyStatus, MisterStatus } from '@shared/types'
 
 let win: BrowserWindow | null = null
 let ws: WsClient | null = null
+let tray: Tray | null = null
+let isQuitting = false
+let lastStatus: MisterStatus = emptyStatus()
 
 const session: Session = {
   profileStore: new ProfileStore(),
@@ -33,32 +36,90 @@ function createWindow(): void {
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Closing the window hides the app to the tray (Docker-style) instead of quitting.
+  win.on('close', (e) => {
+    if (isQuitting) return
+    e.preventDefault()
+    win?.hide()
+    if (process.platform === 'darwin') app.dock?.hide()
+  })
+}
+
+function showWindow(): void {
+  if (!win) {
+    createWindow()
+  } else {
+    win.show()
+    win.focus()
+  }
+  if (process.platform === 'darwin') app.dock?.show()
+}
+
+function trayImage(): Electron.NativeImage {
+  const path = app.isPackaged
+    ? join(process.resourcesPath, 'tray.png')
+    : join(__dirname, '../../build/tray.png')
+  return nativeImage.createFromPath(path)
+}
+
+function updateTray(status: MisterStatus = lastStatus): void {
+  lastStatus = status
+  if (!tray) return
+  const here = status.hostname ?? session.current?.name ?? 'MiSTer'
+  const menu = Menu.buildFromTemplate([
+    { label: status.online ? `● ${here}` : '○ Offline', enabled: false },
+    ...(status.online
+      ? [
+          { label: `Core: ${status.core ?? '—'}`, enabled: false },
+          ...(status.game ? [{ label: `Game: ${status.game}`, enabled: false }] : [])
+        ]
+      : []),
+    { type: 'separator' as const },
+    { label: 'Open MiSTer Companion', click: () => showWindow() },
+    { label: 'Reboot MiSTer', enabled: !!session.rest, click: () => session.rest?.reboot() },
+    { type: 'separator' as const },
+    { label: 'Quit', click: () => { isQuitting = true; app.quit() } }
+  ])
+  tray.setContextMenu(menu)
+  tray.setToolTip(status.online ? `MiSTer Companion — ${here} (${status.core ?? '—'})` : 'MiSTer Companion')
+  // Glanceable core name next to the menu-bar icon on macOS.
+  if (process.platform === 'darwin') tray.setTitle(status.online && status.core ? ` ${status.core}` : '')
+}
+
+function createTray(): void {
+  tray = new Tray(trayImage())
+  tray.on('double-click', () => showWindow())
+  updateTray()
 }
 
 app.whenReady().then(() => {
   createHandlers(ipcMain, session)
 
-  // When a profile connects, start a WS feed that pushes live status to the renderer.
+  // When a profile connects, start a WS feed that pushes live status to the renderer
+  // and refreshes the tray menu.
   ipcMain.handle('mister:startStatusFeed', async () => {
     ws?.stop()
     if (!session.current) return false
-    let status = { ...emptyStatus(), online: true }
     const rest = new RestClient(session.current.host, session.current.restPort)
-    status = await rest.getStatus()
+    let status = await rest.getStatus()
     session.emit?.(IPC.statusUpdate, status)
+    updateTray(status)
     ws = new WsClient(session.current.host, session.current.restPort)
     ws.listen((raw) => {
       status = applyWsMessage(raw, status)
       session.emit?.(IPC.statusUpdate, status)
+      updateTray(status)
     })
     return true
   })
 
+  createTray()
   createWindow()
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
+  app.on('activate', () => showWindow())
 })
 
-app.on('window-all-closed', () => {
-  ws?.stop()
-  if (process.platform !== 'darwin') app.quit()
-})
+app.on('before-quit', () => { isQuitting = true })
+
+// Keep running in the tray when all windows are closed (do not quit).
+app.on('window-all-closed', () => {})
