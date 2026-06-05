@@ -17,7 +17,10 @@ beforeEach(() => {
     searchGames: vi.fn().mockResolvedValue([]),
     onIndexStatus: vi.fn().mockReturnValue(() => {}),
     generateIndex: vi.fn(),
-    sendKey: vi.fn().mockResolvedValue(undefined)
+    sendKey: vi.fn().mockResolvedValue(undefined),
+    raSummary: vi.fn().mockResolvedValue({ hardcorePoints: 0, softcorePoints: 0, rank: 0, totalRanked: 0, currentGame: null, recentGames: [] }),
+    raRecent: vi.fn().mockResolvedValue([]),
+    raGameProgress: vi.fn().mockResolvedValue({ title: '', console: '', iconUrl: null, numAwarded: 0, numAchievements: 0, achievements: [] })
   }
 })
 

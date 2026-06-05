@@ -79,6 +79,36 @@ export interface SmbEntry {
   size: number
 }
 
+export interface RaRecentUnlock {
+  title: string
+  description: string
+  points: number
+  gameId: number
+  gameTitle: string
+  console: string
+  date: string
+  badgeUrl: string | null
+}
+
+export interface RaAchievementDetail {
+  id: number
+  title: string
+  description: string
+  points: number
+  badgeUrl: string | null
+  earned: boolean
+  dateEarned: string | null
+}
+
+export interface RaGameDetail {
+  title: string
+  console: string
+  iconUrl: string | null
+  numAwarded: number
+  numAchievements: number
+  achievements: RaAchievementDetail[]
+}
+
 export interface GameResult {
   name: string
   path: string
@@ -120,6 +150,8 @@ export const IPC = {
   searchSystems: 'mister:searchSystems',
   generateIndex: 'mister:generateIndex',
   sendKey: 'mister:sendKey',
+  raRecent: 'mister:raRecent',
+  raGameProgress: 'mister:raGameProgress',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

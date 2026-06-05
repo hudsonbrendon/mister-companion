@@ -31,6 +31,8 @@ const api = {
   searchGames: (query: string, system: string) => ipcRenderer.invoke(IPC.searchGames, query, system),
   generateIndex: () => ipcRenderer.invoke(IPC.generateIndex),
   sendKey: (key: string) => ipcRenderer.invoke(IPC.sendKey, key),
+  raRecent: (u: string, k: string, minutes: number) => ipcRenderer.invoke(IPC.raRecent, u, k, minutes),
+  raGameProgress: (u: string, k: string, gameId: number) => ipcRenderer.invoke(IPC.raGameProgress, u, k, gameId),
   onIndexStatus: (cb: (s: unknown) => void) => {
     const listener = (_e: unknown, s: unknown) => cb(s)
     ipcRenderer.on(IPC.indexStatus, listener)

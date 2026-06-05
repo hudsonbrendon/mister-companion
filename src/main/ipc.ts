@@ -65,6 +65,10 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
 
   h(IPC.raSummary, (username: string, apiKey: string) =>
     new RaWebClient(username, apiKey).getSummary())
+  h(IPC.raRecent, (username: string, apiKey: string, minutes: number) =>
+    new RaWebClient(username, apiKey).getRecent(minutes))
+  h(IPC.raGameProgress, (username: string, apiKey: string, gameId: number) =>
+    new RaWebClient(username, apiKey).getGameProgress(gameId))
 
   h(IPC.searchSystems, () => session.rest?.searchSystems() ?? Promise.resolve([]))
   h(IPC.searchGames, (query: string, system: string) =>
