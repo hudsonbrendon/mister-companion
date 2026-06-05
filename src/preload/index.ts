@@ -1,0 +1,33 @@
+import { contextBridge, ipcRenderer } from 'electron'
+import { IPC } from '@shared/types'
+
+const api = {
+  listProfiles: () => ipcRenderer.invoke(IPC.listProfiles),
+  saveProfile: (p: unknown) => ipcRenderer.invoke(IPC.saveProfile, p),
+  deleteProfile: (id: string) => ipcRenderer.invoke(IPC.deleteProfile, id),
+  connect: (p: unknown) => ipcRenderer.invoke(IPC.connect, p),
+  disconnect: () => ipcRenderer.invoke(IPC.disconnect),
+  getStatus: () => ipcRenderer.invoke(IPC.getStatus),
+  launchGame: (path: string) => ipcRenderer.invoke(IPC.launchGame, path),
+  reboot: () => ipcRenderer.invoke(IPC.reboot),
+  discover: (localIp: string) => ipcRenderer.invoke(IPC.discover, localIp),
+  sshProbe: () => ipcRenderer.invoke(IPC.sshProbe),
+  listScripts: () => ipcRenderer.invoke(IPC.listScripts),
+  runScript: (id: string) => ipcRenderer.invoke(IPC.runScript, id),
+  raSummary: (u: string, k: string) => ipcRenderer.invoke(IPC.raSummary, u, k),
+  smbList: (share: string, path: string) => ipcRenderer.invoke(IPC.smbList, share, path),
+  startStatusFeed: () => ipcRenderer.invoke('mister:startStatusFeed'),
+  onStatusUpdate: (cb: (s: unknown) => void) => {
+    const listener = (_e: unknown, s: unknown) => cb(s)
+    ipcRenderer.on(IPC.statusUpdate, listener)
+    return () => ipcRenderer.removeListener(IPC.statusUpdate, listener)
+  },
+  onScriptOutput: (cb: (o: unknown) => void) => {
+    const listener = (_e: unknown, o: unknown) => cb(o)
+    ipcRenderer.on(IPC.scriptOutput, listener)
+    return () => ipcRenderer.removeListener(IPC.scriptOutput, listener)
+  }
+}
+
+contextBridge.exposeInMainWorld('api', api)
+export type Api = typeof api

@@ -1,0 +1,43 @@
+import { describe, it, expect } from 'vitest'
+import { EventEmitter } from 'node:events'
+import { SshClient } from './sshClient'
+
+// Minimal fake of ssh2.Client: connect() emits 'ready', exec() streams canned stdout.
+function fakeClientFactory(stdout: string) {
+  return () => {
+    const client = new EventEmitter() as any
+    client.connect = () => setTimeout(() => client.emit('ready'), 0)
+    client.exec = (_cmd: string, cb: (err: unknown, stream: any) => void) => {
+      const stream = new EventEmitter() as any
+      stream.stderr = new EventEmitter()
+      cb(null, stream)
+      setTimeout(() => { stream.emit('data', Buffer.from(stdout)); stream.emit('close', 0) }, 0)
+    }
+    client.end = () => client.emit('close')
+    return client
+  }
+}
+
+describe('SshClient', () => {
+  it('runs a command and resolves with stdout', async () => {
+    const ssh = new SshClient(
+      { host: '127.0.0.1', port: 22, username: 'root', password: '1' },
+      fakeClientFactory('hello world')
+    )
+    const out = await ssh.exec('echo hi')
+    expect(out.stdout).toBe('hello world')
+    expect(out.code).toBe(0)
+    await ssh.close()
+  })
+
+  it('probe() parses telemetry from the probe command output', async () => {
+    const ssh = new SshClient(
+      { host: '127.0.0.1', port: 22, username: 'root', password: '1' },
+      fakeClientFactory('memfree=512\ntemp=40000')
+    )
+    const t = await ssh.probe()
+    expect(t.memFreeKb).toBe(512)
+    expect(t.temperatureC).toBeCloseTo(40)
+    await ssh.close()
+  })
+})

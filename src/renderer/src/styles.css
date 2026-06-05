@@ -1,0 +1,9 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; }
+body { margin: 0; background: #15131f; color: #e7e3f3; }
+.tabs { display: flex; gap: 4px; padding: 8px; background: #1d1a2b; }
+.tabs button[aria-selected='true'] { background: #6c4cff; color: #fff; }
+.tabs button { background: #2a2540; color: #cfc9e6; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+.tab-panel { padding: 16px; }
+.status-indicator { font-weight: 700; margin-bottom: 12px; }
+.error { color: #ff6b81; }
+.script-output { background: #0e0c16; padding: 8px; min-height: 120px; white-space: pre-wrap; }
