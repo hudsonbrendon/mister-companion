@@ -16,7 +16,8 @@ beforeEach(() => {
     searchSystems: vi.fn().mockResolvedValue([]),
     searchGames: vi.fn().mockResolvedValue([]),
     onIndexStatus: vi.fn().mockReturnValue(() => {}),
-    generateIndex: vi.fn()
+    generateIndex: vi.fn(),
+    sendKey: vi.fn().mockResolvedValue(undefined)
   }
 })
 

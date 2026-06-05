@@ -7,6 +7,7 @@ import type { GameResult, IndexStatus } from '@shared/types'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
+import { RemoteControl } from '../components/RemoteControl'
 import {
   Dialog,
   DialogTrigger,
@@ -172,6 +173,9 @@ export function ControlTab(): JSX.Element {
           )}
         </CardContent>
       </Card>
+
+      {/* Remote Control Card */}
+      <RemoteControl />
 
       {/* Power Card */}
       <Card className="border-destructive/30">

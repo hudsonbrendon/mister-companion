@@ -10,6 +10,7 @@ const searchGames = vi.fn().mockResolvedValue([
 ])
 const generateIndex = vi.fn().mockResolvedValue(undefined)
 const onIndexStatus = vi.fn().mockReturnValue(() => {})
+const sendKey = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
@@ -20,13 +21,15 @@ beforeEach(() => {
   searchGames.mockClear()
   generateIndex.mockClear()
   onIndexStatus.mockClear()
+  sendKey.mockClear()
   ;(globalThis as any).window.api = {
     launchGame,
     reboot,
     searchSystems,
     searchGames,
     generateIndex,
-    onIndexStatus
+    onIndexStatus,
+    sendKey
   }
 })
 
@@ -44,6 +47,12 @@ describe('ControlTab', () => {
     fireEvent.click(launchBtn)
 
     expect(launchGame).toHaveBeenCalledWith('/media/fat/games/SNES/Zelda.sfc')
+  })
+
+  it('sends a virtual key from the remote control', () => {
+    render(<ControlTab />)
+    fireEvent.click(screen.getByRole('button', { name: /^OK$/i }))
+    expect(sendKey).toHaveBeenCalledWith('enter')
   })
 
   it('reboots only after confirming in the dialog', async () => {

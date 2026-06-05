@@ -30,6 +30,7 @@ const api = {
   searchSystems: () => ipcRenderer.invoke(IPC.searchSystems),
   searchGames: (query: string, system: string) => ipcRenderer.invoke(IPC.searchGames, query, system),
   generateIndex: () => ipcRenderer.invoke(IPC.generateIndex),
+  sendKey: (key: string) => ipcRenderer.invoke(IPC.sendKey, key),
   onIndexStatus: (cb: (s: unknown) => void) => {
     const listener = (_e: unknown, s: unknown) => cb(s)
     ipcRenderer.on(IPC.indexStatus, listener)

@@ -117,4 +117,15 @@ describe('RestClient', () => {
     const results = await client.searchGames('Zelda')
     expect(results).toEqual([{ name: 'Zelda', path: '/x', systemId: 'SNES', systemName: 'SNES' }])
   })
+
+  it('sendKey POSTs to the control endpoint', async () => {
+    const mock = await startHttpMock([
+      { method: 'POST', path: '/api/controls/keyboard/up', body: { ok: true } }
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    await client.sendKey('up')
+    expect(mock.calls[0].method).toBe('POST')
+    expect(mock.calls[0].url).toBe('/api/controls/keyboard/up')
+  })
 })

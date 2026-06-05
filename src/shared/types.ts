@@ -119,6 +119,7 @@ export const IPC = {
   searchGames: 'mister:searchGames',
   searchSystems: 'mister:searchSystems',
   generateIndex: 'mister:generateIndex',
+  sendKey: 'mister:sendKey',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

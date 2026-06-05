@@ -9,7 +9,8 @@ export const REST_PATHS = {
   reboot: '/api/settings/system/reboot',
   search: '/api/games/search',
   searchSystems: '/api/games/search/systems',
-  index: '/api/games/index'
+  index: '/api/games/index',
+  control: '/api/controls/keyboard'
 } as const
 
 interface RawDisk {
@@ -165,5 +166,11 @@ export class RestClient {
 
   async generateIndex(): Promise<void> {
     await this.request(REST_PATHS.index, { method: 'POST' })
+  }
+
+  // Send a virtual keyboard key to the running core / MiSTer menu. Valid keys:
+  // up/down/left/right/enter/back/menu/osd/home/user/reset/volume_up/volume_down.
+  async sendKey(key: string): Promise<void> {
+    await this.request(`${REST_PATHS.control}/${key}`, { method: 'POST' })
   }
 }

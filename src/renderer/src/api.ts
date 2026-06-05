@@ -22,6 +22,7 @@ export interface RendererApi {
   searchGames(query: string, system: string): Promise<GameResult[]>
   generateIndex(): Promise<void>
   onIndexStatus(cb: (s: IndexStatus) => void): () => void
+  sendKey(key: string): Promise<void>
 }
 
 // Forward every access to the live window.api so tests can swap window.api per-test

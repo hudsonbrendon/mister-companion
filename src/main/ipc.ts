@@ -73,6 +73,10 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     if (!session.rest) throw new Error('not connected')
     return session.rest.generateIndex()
   })
+  h(IPC.sendKey, (key: string) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.sendKey(key)
+  })
 
   // Browse the SD card over SFTP (the MiSTer's Samba is NTLMv2-only, which the bundled
   // SMB client can't speak; SSH/SFTP uses modern auth and shares the same credentials).
