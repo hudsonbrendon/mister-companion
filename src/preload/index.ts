@@ -33,6 +33,8 @@ const api = {
   sendKey: (key: string) => ipcRenderer.invoke(IPC.sendKey, key),
   raRecent: (u: string, k: string, minutes: number) => ipcRenderer.invoke(IPC.raRecent, u, k, minutes),
   raGameProgress: (u: string, k: string, gameId: number) => ipcRenderer.invoke(IPC.raGameProgress, u, k, gameId),
+  checkUpdate: () => ipcRenderer.invoke(IPC.checkUpdate),
+  openExternal: (url: string) => ipcRenderer.invoke(IPC.openExternal, url),
   onIndexStatus: (cb: (s: unknown) => void) => {
     const listener = (_e: unknown, s: unknown) => cb(s)
     ipcRenderer.on(IPC.indexStatus, listener)

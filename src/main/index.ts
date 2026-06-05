@@ -1,11 +1,32 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } from 'electron'
 import { join } from 'node:path'
 import { createHandlers, Session } from './ipc'
 import { ProfileStore } from './store'
 import { RestClient } from './mister/restClient'
 import { WsClient } from './mister/wsClient'
 import { applyWsMessage } from './mister/wsReducer'
-import { IPC, emptyStatus, MisterStatus } from '@shared/types'
+import { isNewer } from './version'
+import { IPC, emptyStatus, MisterStatus, UpdateInfo } from '@shared/types'
+
+const RELEASES_API = 'https://api.github.com/repos/hudsonbrendon/mister-companion/releases/latest'
+
+async function checkUpdate(): Promise<UpdateInfo> {
+  const current = app.getVersion()
+  try {
+    const res = await fetch(RELEASES_API, { headers: { accept: 'application/vnd.github+json' } })
+    if (!res.ok) return { current, latest: current, url: '', hasUpdate: false }
+    const data = (await res.json()) as { tag_name?: string; html_url?: string }
+    const latest = (data.tag_name ?? '').replace(/^v/, '')
+    return {
+      current,
+      latest: latest || current,
+      url: data.html_url ?? '',
+      hasUpdate: latest.length > 0 && isNewer(latest, current)
+    }
+  } catch {
+    return { current, latest: current, url: '', hasUpdate: false }
+  }
+}
 
 let win: BrowserWindow | null = null
 let ws: WsClient | null = null
@@ -95,6 +116,9 @@ function createTray(): void {
 
 app.whenReady().then(() => {
   createHandlers(ipcMain, session)
+
+  ipcMain.handle(IPC.checkUpdate, () => checkUpdate())
+  ipcMain.handle(IPC.openExternal, (_e, url: string) => shell.openExternal(url))
 
   // When a profile connects, start a WS feed that pushes live status to the renderer
   // and refreshes the tray menu.

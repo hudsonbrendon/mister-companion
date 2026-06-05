@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { TooltipProvider } from './components/ui/tooltip'
 import { Toaster } from './components/ui/sonner'
 import { Sidebar, NAV } from './components/Sidebar'
+import { UpdateBanner } from './components/UpdateBanner'
 import { StatusTab } from './tabs/StatusTab'
 import { ControlTab } from './tabs/ControlTab'
 import { ScriptsTab } from './tabs/ScriptsTab'
@@ -28,18 +29,21 @@ export function App(): JSX.Element {
       <StatusProvider>
         <div className="flex h-screen w-screen overflow-hidden">
           <Sidebar active={active} onSelect={setActive} />
-          <main role="tabpanel" aria-label={label} className="flex-1 overflow-y-auto p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-              >
-                {SCREENS[active]()}
-              </motion.div>
-            </AnimatePresence>
+          <main role="tabpanel" aria-label={label} className="flex flex-1 flex-col overflow-hidden">
+            <UpdateBanner />
+            <div className="flex-1 overflow-y-auto p-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                >
+                  {SCREENS[active]()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </main>
         </div>
       </StatusProvider>

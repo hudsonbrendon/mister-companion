@@ -109,6 +109,13 @@ export interface RaGameDetail {
   achievements: RaAchievementDetail[]
 }
 
+export interface UpdateInfo {
+  current: string
+  latest: string
+  url: string
+  hasUpdate: boolean
+}
+
 export interface GameResult {
   name: string
   path: string
@@ -152,6 +159,8 @@ export const IPC = {
   sendKey: 'mister:sendKey',
   raRecent: 'mister:raRecent',
   raGameProgress: 'mister:raGameProgress',
+  checkUpdate: 'app:checkUpdate',
+  openExternal: 'app:openExternal',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

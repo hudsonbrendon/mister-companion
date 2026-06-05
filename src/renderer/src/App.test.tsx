@@ -20,7 +20,9 @@ beforeEach(() => {
     sendKey: vi.fn().mockResolvedValue(undefined),
     raSummary: vi.fn().mockResolvedValue({ hardcorePoints: 0, softcorePoints: 0, rank: 0, totalRanked: 0, currentGame: null, recentGames: [] }),
     raRecent: vi.fn().mockResolvedValue([]),
-    raGameProgress: vi.fn().mockResolvedValue({ title: '', console: '', iconUrl: null, numAwarded: 0, numAchievements: 0, achievements: [] })
+    raGameProgress: vi.fn().mockResolvedValue({ title: '', console: '', iconUrl: null, numAwarded: 0, numAchievements: 0, achievements: [] }),
+    checkUpdate: vi.fn().mockResolvedValue({ current: '0.0.0', latest: '0.0.0', url: '', hasUpdate: false }),
+    openExternal: vi.fn().mockResolvedValue(undefined)
   }
 })
 
