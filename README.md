@@ -16,6 +16,27 @@ Built with Electron + TypeScript + React. Complements
 - Discovery — subnet status-probe scan + mDNS
 - SMB — browse `/media/fat` (the SD card)
 
+## Installing the prebuilt apps
+
+Download the installer for your OS from the
+[latest release](https://github.com/hudsonbrendon/mister-companion/releases/latest).
+
+These builds are **not code-signed** with a paid developer certificate yet, so the OS
+warns on first launch:
+
+**macOS** — if you see *"MiSTer Companion is damaged and can't be opened"*, clear the
+download quarantine (adjust the path to where you moved the app):
+
+```bash
+xattr -cr "/Applications/MiSTer Companion.app"
+```
+
+Then open it normally. The build is ad-hoc signed, so after the `xattr` step it opens
+without the "damaged" error.
+
+**Windows** — SmartScreen shows *"Windows protected your PC"*. Click **More info →
+Run anyway**.
+
 ## Develop
 
 ```bash

@@ -6,11 +6,20 @@ directories:
 files:
   - out/**/*
   - package.json
+afterPack: build/afterPack.js
 mac:
   target: [dmg]
   category: public.app-category.utilities
+  # No paid Developer ID; afterPack.js applies an ad-hoc signature instead.
+  identity: null
 win:
   target: [nsis]
 linux:
   target: [AppImage]
   category: Utility
+publish:
+  provider: github
+  owner: hudsonbrendon
+  repo: mister-companion
+  # Publish directly (not a draft) so a v* tag produces a ready release.
+  releaseType: release
