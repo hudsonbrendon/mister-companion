@@ -1,7 +1,7 @@
 {
   "nav": { "status": "Status", "control": "Controle", "scripts": "Scripts", "files": "Arquivos", "ra": "RetroAchievements" },
   "common": { "connected": "Conectado", "offline": "Offline", "online": "Online", "discover": "Descobrir", "scanning": "Procurando…" },
-  "status": { "subtitle": "Visão ao vivo do seu MiSTer", "core": "Core", "nowPlaying": "Jogando agora", "system": "Sistema", "version": "Versão", "ip": "IP", "hostname": "Hostname", "disk": "Disco", "used": "{{pct}}% usado" },
+  "status": { "subtitle": "Visão ao vivo do seu MiSTer", "core": "Core", "nowPlaying": "Jogando agora", "system": "Sistema", "version": "Versão", "ip": "IP", "hostname": "Hostname", "disk": "Disco", "used": "{{pct}}% usado", "systemHealth": "Saúde do sistema", "uptime": "Tempo ligado", "load": "Carga", "memory": "Memória", "kernel": "Kernel" },
   "control": { "subtitle": "Inicie jogos e gerencie o sistema", "launchTitle": "Iniciar um jogo", "pathPlaceholder": "Caminho do jogo (ex.: /media/fat/games/SNES/Zelda.sfc)", "launch": "Iniciar", "power": "Energia", "reboot": "Reiniciar MiSTer", "rebootConfirmTitle": "Reiniciar MiSTer?", "rebootConfirmDesc": "Isso reinicia o dispositivo. Qualquer progresso não salvo pode ser perdido.", "cancel": "Cancelar", "confirmReboot": "Confirmar reinicialização", "launchSent": "Início enviado", "rebootSent": "Reinicialização enviada" },
   "scripts": { "subtitle": "Execute scripts do MiSTer via SSH", "run": "Executar {{label}}", "output": "Saída", "noOutput": "Sem saída ainda — execute um script para ver os logs ao vivo." },
   "files": { "subtitle": "Navegue pelo cartão SD via SSH", "up": "Subir", "empty": "Pasta vazia." },

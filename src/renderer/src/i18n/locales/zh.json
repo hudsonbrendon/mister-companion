@@ -1,7 +1,7 @@
 {
   "nav": { "status": "状态", "control": "控制", "scripts": "脚本", "files": "文件", "ra": "RetroAchievements" },
   "common": { "connected": "已连接", "offline": "离线", "online": "在线", "discover": "发现", "scanning": "扫描中…" },
-  "status": { "subtitle": "MiSTer 实时视图", "core": "Core", "nowPlaying": "正在游玩", "system": "系统", "version": "版本", "ip": "IP", "hostname": "主机名", "disk": "磁盘", "used": "已用 {{pct}}%" },
+  "status": { "subtitle": "MiSTer 实时视图", "core": "Core", "nowPlaying": "正在游玩", "system": "系统", "version": "版本", "ip": "IP", "hostname": "主机名", "disk": "磁盘", "used": "已用 {{pct}}%", "systemHealth": "系统状态", "uptime": "运行时间", "load": "负载", "memory": "内存", "kernel": "内核" },
   "control": { "subtitle": "启动游戏并管理电源", "launchTitle": "启动游戏", "pathPlaceholder": "游戏路径（如 /media/fat/games/SNES/Zelda.sfc）", "launch": "启动", "power": "电源", "reboot": "重启 MiSTer", "rebootConfirmTitle": "重启 MiSTer？", "rebootConfirmDesc": "这将重启设备。未保存的游戏进度可能会丢失。", "cancel": "取消", "confirmReboot": "确认重启", "launchSent": "已发送启动指令", "rebootSent": "已发送重启指令" },
   "scripts": { "subtitle": "通过 SSH 运行 MiSTer 系统脚本", "run": "运行 {{label}}", "output": "输出", "noOutput": "暂无输出 — 运行脚本以查看实时日志。" },
   "files": { "subtitle": "通过 SSH 浏览 SD 卡", "up": "返回上级", "empty": "文件夹为空。" },

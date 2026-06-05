@@ -1,17 +1,20 @@
-import { Cpu, Gamepad2, Server, Network, HardDrive } from 'lucide-react'
+import { Cpu, Gamepad2, Server, Network, HardDrive, Activity, Clock, MemoryStick, SquareTerminal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useStatusContext } from '../hooks/status-context'
+import { useTelemetry } from '../hooks/useTelemetry'
 import { StatCard } from '../components/StatCard'
 import { StatusDot } from '../components/StatusDot'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Progress } from '../components/ui/progress'
 import { Badge } from '../components/ui/badge'
-import { gb, diskPercent } from '../lib/format'
+import { gb, diskPercent, formatUptime, mb, memPercent } from '../lib/format'
 
 export function StatusTab(): JSX.Element {
   const s = useStatusContext()
+  const tel = useTelemetry(s.online)
   const { t } = useTranslation()
   const pct = diskPercent(s.diskUsed, s.diskTotal)
+  const memPct = memPercent(tel?.memFreeKb ?? null, tel?.memTotalKb ?? null)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -57,6 +60,47 @@ export function StatusTab(): JSX.Element {
         <CardContent>
           <Progress value={pct} indicatorClassName={pct > 90 ? 'bg-destructive' : 'bg-primary'} />
           <div className="mt-2 text-right text-xs text-muted-foreground">{t('status.used', { pct })}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Activity className="size-4 text-primary" /> {t('status.systemHealth')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
+          <div className="flex items-center gap-3">
+            <Clock className="size-5 text-muted-foreground" />
+            <div>
+              <div className="text-xs uppercase text-muted-foreground">{t('status.uptime')}</div>
+              <div className="font-mono font-semibold">{formatUptime(tel?.uptimeSeconds ?? null)}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Activity className="size-5 text-muted-foreground" />
+            <div>
+              <div className="text-xs uppercase text-muted-foreground">{t('status.load')}</div>
+              <div className="font-mono font-semibold">{tel?.loadAvg != null ? tel.loadAvg.toFixed(2) : '—'}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <SquareTerminal className="size-5 text-muted-foreground" />
+            <div className="min-w-0">
+              <div className="text-xs uppercase text-muted-foreground">{t('status.kernel')}</div>
+              <div className="truncate font-mono font-semibold">{tel?.kernel ?? '—'}</div>
+            </div>
+          </div>
+          <div className="col-span-2 flex items-center gap-3 lg:col-span-1">
+            <MemoryStick className="size-5 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between text-xs uppercase text-muted-foreground">
+                <span>{t('status.memory')}</span>
+                <span className="font-mono normal-case">{mb(tel ? (tel.memTotalKb ?? 0) - (tel.memFreeKb ?? 0) : null)}</span>
+              </div>
+              <Progress value={memPct} className="mt-1.5 h-2" />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

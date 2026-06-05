@@ -37,6 +37,7 @@ export interface SshTelemetry {
   memTotalKb: number | null
   memFreeKb: number | null
   temperatureC: number | null
+  kernel: string | null
   raw: Record<string, string>
 }
 
