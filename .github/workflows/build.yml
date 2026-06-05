@@ -19,6 +19,8 @@ jobs:
 
   package:
     needs: test
+    permissions:
+      contents: write
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
@@ -39,3 +41,15 @@ jobs:
             dist/*.exe
             dist/*.AppImage
           if-no-files-found: ignore
+      # On a v* tag, publish the installers to a GitHub Release (creating it if needed).
+      # Each OS job uploads its own installer to the same release tag.
+      - name: Publish installers to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            dist/*.dmg
+            dist/*.exe
+            dist/*.AppImage
