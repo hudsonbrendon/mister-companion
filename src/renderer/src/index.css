@@ -3,6 +3,29 @@
 @tailwind utilities;
 
 :root {
+  --background: 250 50% 98%;
+  --foreground: 252 35% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 252 35% 16%;
+  --primary: 252 95% 62%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 252 30% 92%;
+  --secondary-foreground: 252 30% 22%;
+  --muted: 250 30% 94%;
+  --muted-foreground: 252 12% 42%;
+  --accent: 252 40% 92%;
+  --accent-foreground: 252 35% 20%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --pink: 327 90% 58%;
+  --pink-foreground: 0 0% 100%;
+  --border: 252 24% 88%;
+  --input: 252 24% 85%;
+  --ring: 252 95% 62%;
+  --radius: 0.75rem;
+}
+
+.dark {
   --background: 252 26% 9%;
   --foreground: 250 30% 92%;
   --card: 252 24% 13%;
@@ -22,7 +45,6 @@
   --border: 252 18% 22%;
   --input: 252 18% 24%;
   --ring: 252 100% 65%;
-  --radius: 0.75rem;
 }
 
 * { border-color: hsl(var(--border)); }
@@ -37,8 +59,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle radial purple ambience behind the app */
+/* Subtle radial purple ambience behind the app (light by default) */
 #root {
+  background:
+    radial-gradient(1100px 700px at 12% -10%, hsl(252 80% 90% / 0.7), transparent 60%),
+    radial-gradient(900px 600px at 110% 0%, hsl(327 85% 92% / 0.5), transparent 55%);
+}
+
+.dark #root {
   background:
     radial-gradient(1100px 700px at 12% -10%, hsl(252 60% 22% / 0.5), transparent 60%),
     radial-gradient(900px 600px at 110% 0%, hsl(327 60% 24% / 0.28), transparent 55%);
