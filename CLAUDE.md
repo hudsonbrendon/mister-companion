@@ -28,8 +28,19 @@ but reimplemented in TypeScript for the Electron runtime.
 - TDD: failing test first. Conventional Commits. No Co-Authored-By trailer.
 - Squash per-task commits into one clean commit before the first public push.
 
-## Pending device verification
-(Protocol-fidelity items confirmed against a real MiSTer go here — see plan Tasks 3–6.)
+## Device-verified protocol (mrext Remote v0.4 @ MiSTer, 2026-06)
 
-- REST_PATHS (status/launch/reboot) and status field mapping not yet confirmed against a real device — see plan Task 3 Step 6.
-- PROBE_COMMAND paths (/proc/uptime, /proc/loadavg, /proc/meminfo MemAvailable, thermal_zone0) not yet confirmed on a real MiSTer image — see plan Task 6 Step 9.
+REST + WebSocket confirmed against a real MiSTer. The mrext API base is `http://<ip>:8182/api`:
+
+- **Status** is split across two endpoints (there is NO `/api/status`):
+  - `GET /api/sysinfo` → `{hostname, ips:[], dns, version, disks:[{path,total,used,free,displayName}]}`
+    (disk = the entry with `path == "/media/fat"`; `ip` = `ips[0]`)
+  - `GET /api/games/playing` → `{core, system, systemName, game, gameName}` (empty strings → null)
+- **Launch:** `POST /api/games/launch` with `{ "path": "..." }`
+- **Reboot:** `POST /api/settings/system/reboot`
+- **WebSocket** `ws://<ip>:8182/api/ws` sends plain **text tokens** (not JSON):
+  `coreRunning:<CORE>`, `gameRunning:<GAME>` (empty when none), `indexStatus:...` (ignored).
+
+### Still pending verification
+- PROBE_COMMAND paths (/proc/uptime, /proc/loadavg, /proc/meminfo MemAvailable, thermal_zone0)
+  not yet confirmed on a real MiSTer image — see plan Task 6 Step 9.

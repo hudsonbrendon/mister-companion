@@ -12,7 +12,7 @@ async function probeHost(
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   try {
-    const res = await fetchFn(`http://${host}:${port}${REST_PATHS.status}`, {
+    const res = await fetchFn(`http://${host}:${port}${REST_PATHS.sysinfo}`, {
       signal: ctrl.signal
     })
     if (!res.ok) return null

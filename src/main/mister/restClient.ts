@@ -1,17 +1,42 @@
 import { MisterStatus, emptyStatus } from '@shared/types'
 
-// mrext Remote REST API paths. VERIFY against python-mister-fpga + a real device
-// (see plan "Protocol-fidelity checkpoints"). Centralized so a path change is one edit.
+// mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
+// System info and the currently-running core/game live on two separate endpoints.
 export const REST_PATHS = {
-  status: '/api/status',
+  sysinfo: '/api/sysinfo',
+  playing: '/api/games/playing',
   launch: '/api/games/launch',
-  reboot: '/api/system/reboot'
+  reboot: '/api/settings/system/reboot'
 } as const
 
-interface RawStatus {
-  core?: string; system?: string; game?: string; hostname?: string; version?: string
-  ip?: string; ips?: string[]; dns?: string
-  disk_total?: number; disk_used?: number; disk_free?: number
+interface RawDisk {
+  path: string
+  total?: number
+  used?: number
+  free?: number
+  displayName?: string
+}
+
+interface RawSysinfo {
+  hostname?: string
+  version?: string
+  ip?: string
+  ips?: string[]
+  dns?: string
+  disks?: RawDisk[]
+}
+
+interface RawPlaying {
+  core?: string
+  system?: string
+  systemName?: string
+  game?: string
+  gameName?: string
+}
+
+// mrext returns "" for an absent core/game/etc.; treat empty strings as null.
+function nz(value: string | undefined | null): string | null {
+  return value && value.length > 0 ? value : null
 }
 
 export class RestClient {
@@ -36,27 +61,38 @@ export class RestClient {
     }
   }
 
-  async getStatus(): Promise<MisterStatus> {
+  private async json<T>(path: string): Promise<T | null> {
     try {
-      const res = await this.request(REST_PATHS.status)
-      if (!res.ok) return emptyStatus()
-      const raw = (await res.json()) as RawStatus
-      return {
-        online: true,
-        core: raw.core ?? null,
-        system: raw.system ?? null,
-        game: raw.game ?? null,
-        hostname: raw.hostname ?? null,
-        version: raw.version ?? null,
-        ip: raw.ip ?? null,
-        ips: raw.ips ?? [],
-        dns: raw.dns ?? null,
-        diskTotal: raw.disk_total ?? null,
-        diskUsed: raw.disk_used ?? null,
-        diskFree: raw.disk_free ?? null
-      }
+      const res = await this.request(path)
+      if (!res.ok) return null
+      return (await res.json()) as T
     } catch {
-      return emptyStatus()
+      return null
+    }
+  }
+
+  async getStatus(): Promise<MisterStatus> {
+    // sysinfo is the source of truth for "online"; games/playing is best-effort.
+    const [sys, play] = await Promise.all([
+      this.json<RawSysinfo>(REST_PATHS.sysinfo),
+      this.json<RawPlaying>(REST_PATHS.playing)
+    ])
+    if (!sys) return emptyStatus()
+
+    const disk = (sys.disks ?? []).find((d) => d.path === '/media/fat') ?? sys.disks?.[0]
+    return {
+      online: true,
+      core: nz(play?.core),
+      system: nz(play?.systemName) ?? nz(play?.system),
+      game: nz(play?.gameName) ?? nz(play?.game),
+      hostname: nz(sys.hostname),
+      version: nz(sys.version),
+      ip: nz(sys.ip) ?? sys.ips?.[0] ?? null,
+      ips: sys.ips ?? [],
+      dns: nz(sys.dns),
+      diskTotal: disk?.total ?? null,
+      diskUsed: disk?.used ?? null,
+      diskFree: disk?.free ?? null
     }
   }
 

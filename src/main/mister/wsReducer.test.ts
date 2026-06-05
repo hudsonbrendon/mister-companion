@@ -3,26 +3,28 @@ import { emptyStatus } from '@shared/types'
 import { applyWsMessage } from './wsReducer'
 
 describe('applyWsMessage', () => {
-  it('updates core/system/game from a JSON status message', () => {
-    const next = applyWsMessage(
-      JSON.stringify({ type: 'status', core: 'Genesis', system: 'Genesis', game: 'Sonic' }),
-      { ...emptyStatus(), online: true }
-    )
-    expect(next.core).toBe('Genesis')
-    expect(next.game).toBe('Sonic')
+  it('sets the core from a coreRunning token', () => {
+    const next = applyWsMessage('coreRunning:GAMEBOY', { ...emptyStatus(), online: true })
+    expect(next.core).toBe('GAMEBOY')
     expect(next.online).toBe(true)
   })
 
-  it('clears game when a menu/core-stop message arrives', () => {
-    const start = { ...emptyStatus(), online: true, core: 'SNES', game: 'Zelda' }
-    const next = applyWsMessage(JSON.stringify({ type: 'menu' }), start)
-    expect(next.game).toBeNull()
-    expect(next.core).toBe('menu')
+  it('sets the game from a gameRunning token', () => {
+    const next = applyWsMessage('gameRunning:Chrono Trigger', { ...emptyStatus(), online: true, core: 'SNES' })
+    expect(next.game).toBe('Chrono Trigger')
+    expect(next.core).toBe('SNES')
   })
 
-  it('ignores unparseable/unknown messages without throwing', () => {
-    const start = { ...emptyStatus(), online: true, core: 'SNES' }
-    expect(applyWsMessage('not-json', start)).toEqual(start)
-    expect(applyWsMessage(JSON.stringify({ type: 'pong' }), start)).toEqual(start)
+  it('maps an empty gameRunning value to null (no game loaded)', () => {
+    const start = { ...emptyStatus(), online: true, core: 'GAMEBOY', game: 'Zelda' }
+    const next = applyWsMessage('gameRunning:', start)
+    expect(next.game).toBeNull()
+  })
+
+  it('ignores indexStatus, colon-less, and unknown tokens without throwing', () => {
+    const start = { ...emptyStatus(), online: true, core: 'GAMEBOY' }
+    expect(applyWsMessage('indexStatus:n,n,0,0,', start)).toEqual(start)
+    expect(applyWsMessage('no-colon-here', start)).toEqual(start)
+    expect(applyWsMessage('somethingElse:value', start)).toEqual(start)
   })
 })

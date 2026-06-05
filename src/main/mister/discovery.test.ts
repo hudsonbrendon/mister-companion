@@ -6,9 +6,9 @@ let close: (() => Promise<void>) | null = null
 afterEach(async () => { if (close) await close(); close = null })
 
 describe('discovery', () => {
-  it('scanHosts returns only hosts that answer the status probe', async () => {
+  it('scanHosts returns only hosts that answer the sysinfo probe', async () => {
     const mock = await startHttpMock([
-      { method: 'GET', path: '/api/status', body: { hostname: 'MiSTer' } }
+      { method: 'GET', path: '/api/sysinfo', body: { hostname: 'MiSTer' } }
     ])
     close = mock.close
     // One reachable host (mock), one dead host (port 1).

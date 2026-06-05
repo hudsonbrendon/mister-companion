@@ -6,23 +6,56 @@ let close: (() => Promise<void>) | null = null
 afterEach(async () => { if (close) await close(); close = null })
 
 describe('RestClient', () => {
-  it('maps mrext status payload into MisterStatus camelCase', async () => {
+  it('merges /api/sysinfo + /api/games/playing into MisterStatus', async () => {
     const mock = await startHttpMock([
-      { method: 'GET', path: '/api/status', body: {
-        core: 'SNES', system: 'SNES', game: 'Chrono Trigger',
-        hostname: 'MiSTer', version: 'mrext-1.0', ip: '192.168.31.50',
-        ips: ['192.168.31.50'], dns: '192.168.31.1',
-        disk_total: 32_000_000_000, disk_used: 24_000_000_000, disk_free: 8_000_000_000
+      { method: 'GET', path: '/api/sysinfo', body: {
+        hostname: 'MiSTer', version: '0.4', ips: ['192.168.31.113'], dns: 'MiSTer.local',
+        disks: [{ path: '/media/fat', total: 127857197056, used: 120988237824, free: 6868959232, displayName: 'SD card' }]
+      } },
+      { method: 'GET', path: '/api/games/playing', body: {
+        core: 'GAMEBOY', system: 'GameboyColor', systemName: 'Gameboy Color', game: 'zelda', gameName: 'Zelda'
       } }
     ])
     close = mock.close
     const client = new RestClient('127.0.0.1', mock.port)
     const status = await client.getStatus()
     expect(status.online).toBe(true)
-    expect(status.core).toBe('SNES')
-    expect(status.game).toBe('Chrono Trigger')
-    expect(status.diskTotal).toBe(32_000_000_000)
-    expect(status.diskFree).toBe(8_000_000_000)
+    expect(status.core).toBe('GAMEBOY')
+    expect(status.system).toBe('Gameboy Color') // prefers systemName
+    expect(status.game).toBe('Zelda') // prefers gameName
+    expect(status.hostname).toBe('MiSTer')
+    expect(status.version).toBe('0.4')
+    expect(status.ip).toBe('192.168.31.113') // derived from ips[0]
+    expect(status.ips).toEqual(['192.168.31.113'])
+    expect(status.diskTotal).toBe(127857197056)
+    expect(status.diskUsed).toBe(120988237824)
+    expect(status.diskFree).toBe(6868959232)
+  })
+
+  it('maps empty core/game strings to null (core menu, no game)', async () => {
+    const mock = await startHttpMock([
+      { method: 'GET', path: '/api/sysinfo', body: { hostname: 'MiSTer', ips: ['10.0.0.5'] } },
+      { method: 'GET', path: '/api/games/playing', body: { core: 'GAMEBOY', system: '', systemName: '', game: '', gameName: '' } }
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    const status = await client.getStatus()
+    expect(status.core).toBe('GAMEBOY')
+    expect(status.system).toBeNull()
+    expect(status.game).toBeNull()
+  })
+
+  it('is still online when games/playing is unavailable (sysinfo is the source of truth)', async () => {
+    const mock = await startHttpMock([
+      { method: 'GET', path: '/api/sysinfo', body: { hostname: 'MiSTer', ips: ['10.0.0.5'] } }
+      // no /api/games/playing route -> 404 -> json() returns null
+    ])
+    close = mock.close
+    const client = new RestClient('127.0.0.1', mock.port)
+    const status = await client.getStatus()
+    expect(status.online).toBe(true)
+    expect(status.hostname).toBe('MiSTer')
+    expect(status.core).toBeNull()
   })
 
   it('returns offline status when the host is unreachable', async () => {
@@ -32,7 +65,7 @@ describe('RestClient', () => {
     expect(status.core).toBeNull()
   })
 
-  it('POSTs the launch path', async () => {
+  it('POSTs {path} to the launch endpoint', async () => {
     const mock = await startHttpMock([
       { method: 'POST', path: '/api/games/launch', body: { ok: true } }
     ])
@@ -48,12 +81,12 @@ describe('RestClient', () => {
 
   it('POSTs to the reboot endpoint', async () => {
     const mock = await startHttpMock([
-      { method: 'POST', path: '/api/system/reboot', body: { ok: true } }
+      { method: 'POST', path: '/api/settings/system/reboot', body: { ok: true } }
     ])
     close = mock.close
     const client = new RestClient('127.0.0.1', mock.port)
     await client.reboot()
     expect(mock.calls[0].method).toBe('POST')
-    expect(mock.calls[0].url).toBe('/api/system/reboot')
+    expect(mock.calls[0].url).toBe('/api/settings/system/reboot')
   })
 })

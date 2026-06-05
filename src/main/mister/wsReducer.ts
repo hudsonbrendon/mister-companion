@@ -1,25 +1,22 @@
 import { MisterStatus } from '@shared/types'
 
-// Pure reducer: given a raw WS message string and the current status, return the next
-// status. Mirrors python-mister-fpga's apply_ws_message intent (core/game transitions).
-// VERIFY message shapes against a real device (see plan checkpoint).
+// Pure reducer for mrext Remote's WebSocket (verified against a real device).
+// Messages are plain "key:value" text tokens, e.g.:
+//   coreRunning:GAMEBOY
+//   gameRunning:Chrono Trigger        (empty value when no game is loaded)
+//   indexStatus:n,n,0,0,              (game-index build progress — ignored)
 export function applyWsMessage(message: string, status: MisterStatus): MisterStatus {
-  let parsed: { type?: string; core?: string; system?: string; game?: string }
-  try {
-    parsed = JSON.parse(message)
-  } catch {
-    return status
-  }
-  switch (parsed.type) {
-    case 'status':
-      return {
-        ...status,
-        core: parsed.core ?? status.core,
-        system: parsed.system ?? status.system,
-        game: parsed.game ?? status.game
-      }
-    case 'menu':
-      return { ...status, core: 'menu', game: null }
+  const sep = message.indexOf(':')
+  if (sep === -1) return status
+  const key = message.slice(0, sep)
+  const raw = message.slice(sep + 1).trim()
+  const value = raw.length > 0 ? raw : null
+
+  switch (key) {
+    case 'coreRunning':
+      return { ...status, core: value }
+    case 'gameRunning':
+      return { ...status, game: value }
     default:
       return status
   }
