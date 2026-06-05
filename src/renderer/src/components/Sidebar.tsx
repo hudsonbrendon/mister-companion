@@ -2,7 +2,7 @@ import { Activity, Gamepad2, Terminal, FolderOpen, Trophy } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { StatusDot } from './StatusDot'
 import { ConnectionBar } from '../ConnectionBar'
-import { useStatus } from '../hooks/useStatus'
+import { useStatusContext } from '../hooks/status-context'
 
 const logoUrl = new URL('../../../../assets/logo.png', import.meta.url).href
 
@@ -27,7 +27,7 @@ export function Sidebar({
   active: string
   onSelect: (id: string) => void
 }): JSX.Element {
-  const status = useStatus()
+  const status = useStatusContext()
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col gap-4 border-r border-border bg-card/40 p-4 backdrop-blur">
       <div className="flex items-center gap-3 px-1">
