@@ -3,12 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RATab } from './RATab'
 
 const raSummary = vi.fn().mockResolvedValue({
-  hardcorePoints: 1234, softcorePoints: 50, rank: 42, totalRanked: 100000,
+  hardcorePoints: 1234,
+  softcorePoints: 50,
+  rank: 42,
+  totalRanked: 100000,
   currentGame: null,
   recentGames: [
     { gameId: 1, title: 'Sonic', console: 'Genesis', numAchieved: 5, numPossible: 50, percent: 10, iconUrl: null }
   ]
 })
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 beforeEach(() => {
   raSummary.mockClear()
