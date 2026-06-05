@@ -20,26 +20,37 @@ Built with Electron + TypeScript + React. Complements
 - Discovery — subnet status-probe scan + mDNS
 - SMB — browse `/media/fat` (the SD card)
 
-## Installing the prebuilt apps
+## Install
 
-Download the installer for your OS from the
-[latest release](https://github.com/hudsonbrendon/mister-companion/releases/latest).
-
-These builds are **not code-signed** with a paid developer certificate yet, so the OS
-warns on first launch:
-
-**macOS** — if you see *"MiSTer Companion is damaged and can't be opened"*, clear the
-download quarantine (adjust the path to where you moved the app):
+### macOS — Homebrew (recommended)
 
 ```bash
-xattr -cr "/Applications/MiSTer Companion.app"
+brew install --cask hudsonbrendon/tap/mister-companion
 ```
 
-Then open it normally. The build is ad-hoc signed, so after the `xattr` step it opens
-without the "damaged" error.
+Opens with a normal double-click, **no Gatekeeper prompt** — the tap clears the download
+quarantine on install, so you don't need a paid Apple notarization. Apple Silicon only.
+Update later with `brew upgrade --cask mister-companion`.
 
-**Windows** — SmartScreen shows *"Windows protected your PC"*. Click **More info →
-Run anyway**.
+### macOS — direct download
+
+Grab the `.dmg` from the [latest release](https://github.com/hudsonbrendon/mister-companion/releases/latest).
+Because the build isn't Apple-notarized, macOS shows *"Apple could not verify… is free of
+malware"* on first launch. Either:
+
+- click **Done**, then **System Settings → Privacy & Security → Open Anyway**, or
+- clear the quarantine yourself:
+  ```bash
+  xattr -cr "/Applications/MiSTer Companion.app"
+  ```
+
+The app is ad-hoc signed, so it never shows the older *"is damaged"* error.
+
+### Windows / Linux
+
+Download the `.exe` (Windows) or `.AppImage` (Linux) from the
+[latest release](https://github.com/hudsonbrendon/mister-companion/releases/latest).
+On Windows, SmartScreen shows *"Windows protected your PC"* — click **More info → Run anyway**.
 
 ## Develop
 
