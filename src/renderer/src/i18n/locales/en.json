@@ -1,0 +1,10 @@
+{
+  "nav": { "status": "Status", "control": "Control", "scripts": "Scripts", "files": "Files", "ra": "RetroAchievements" },
+  "common": { "connected": "Connected", "offline": "Offline", "online": "Online", "discover": "Discover", "scanning": "Scanning…" },
+  "status": { "subtitle": "Live view of your MiSTer", "core": "Core", "nowPlaying": "Now playing", "system": "System", "version": "Version", "ip": "IP", "hostname": "Hostname", "disk": "Disk", "used": "{{pct}}% used" },
+  "control": { "subtitle": "Launch games and manage power", "launchTitle": "Launch a game", "pathPlaceholder": "Path to game (e.g. /media/fat/games/SNES/Zelda.sfc)", "launch": "Launch", "power": "Power", "reboot": "Reboot MiSTer", "rebootConfirmTitle": "Reboot MiSTer?", "rebootConfirmDesc": "This restarts the device. Any unsaved game state may be lost.", "cancel": "Cancel", "confirmReboot": "Confirm reboot", "launchSent": "Launch sent", "rebootSent": "Reboot sent" },
+  "scripts": { "subtitle": "Run MiSTer system scripts over SSH", "run": "Run {{label}}", "output": "Output", "noOutput": "No output yet — run a script to see live logs." },
+  "files": { "subtitle": "Browse the SD card over SSH", "up": "Up", "empty": "Empty folder." },
+  "ra": { "subtitle": "Track your hardcore progress", "credentials": "Credentials", "username": "RA Username", "apiKey": "API Key", "load": "Load", "loading": "Loading…", "hardcorePoints": "Hardcore points", "rank": "Rank", "softcore": "Softcore", "error": "RetroAchievements: {{msg}}" },
+  "connection": { "discoveredTitle": "Discovered MiSTers", "discoveredDesc": "Pick a device to connect over its mrext Remote API.", "scanningNetwork": "Scanning your network…", "noneFound": "No MiSTer found. Make sure it's powered on and the mrext Remote service is running, then scan again.", "scanAgain": "Scan again", "saved": "Saved", "connectedTo": "Connected to {{name}}", "connectFailed": "Connect failed: {{error}}" }
+}

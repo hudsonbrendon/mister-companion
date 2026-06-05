@@ -1,23 +1,23 @@
 import { Activity, Gamepad2, Terminal, FolderOpen, Trophy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { StatusDot } from './StatusDot'
 import { ConnectionBar } from '../ConnectionBar'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { useStatusContext } from '../hooks/status-context'
-
-const logoUrl = new URL('../../../../assets/logo.png', import.meta.url).href
 
 export interface NavItem {
   id: string
-  label: string
+  i18nKey: 'nav.status' | 'nav.control' | 'nav.scripts' | 'nav.files' | 'nav.ra'
   icon: React.ComponentType<{ className?: string }>
 }
 
 export const NAV: NavItem[] = [
-  { id: 'status', label: 'Status', icon: Activity },
-  { id: 'control', label: 'Control', icon: Gamepad2 },
-  { id: 'scripts', label: 'Scripts', icon: Terminal },
-  { id: 'files', label: 'Files', icon: FolderOpen },
-  { id: 'ra', label: 'RetroAchievements', icon: Trophy }
+  { id: 'status', i18nKey: 'nav.status', icon: Activity },
+  { id: 'control', i18nKey: 'nav.control', icon: Gamepad2 },
+  { id: 'scripts', i18nKey: 'nav.scripts', icon: Terminal },
+  { id: 'files', i18nKey: 'nav.files', icon: FolderOpen },
+  { id: 'ra', i18nKey: 'nav.ra', icon: Trophy }
 ]
 
 export function Sidebar({
@@ -28,15 +28,15 @@ export function Sidebar({
   onSelect: (id: string) => void
 }): JSX.Element {
   const status = useStatusContext()
+  const { t } = useTranslation()
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col gap-4 border-r border-border bg-card/40 p-4 backdrop-blur">
       <div className="flex items-center gap-3 px-1">
-        <img src={logoUrl} alt="MiSTer Companion" className="size-10 rounded-md" />
         <div className="leading-tight">
           <div className="text-sm font-semibold">MiSTer Companion</div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <StatusDot online={status.online} />
-            {status.online ? 'Connected' : 'Offline'}
+            {status.online ? t('common.connected') : t('common.offline')}
           </div>
         </div>
       </div>
@@ -59,13 +59,14 @@ export function Sidebar({
               )}
             >
               <Icon className="size-4" />
-              {item.label}
+              {t(item.i18nKey)}
             </button>
           )
         })}
       </nav>
 
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-2">
+        <LanguageSwitcher />
         <ConnectionBar localIp={window.location.hostname || '192.168.1.10'} />
       </div>
     </aside>

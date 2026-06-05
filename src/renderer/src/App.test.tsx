@@ -25,7 +25,7 @@ describe('App shell', () => {
     expect(screen.getByRole('tab', { name: /scripts/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /files/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /retroachievements/i })).toBeInTheDocument()
-    expect(screen.getByAltText(/mister companion/i)).toBeInTheDocument()
+    expect(screen.getByText('MiSTer Companion')).toBeInTheDocument()
   })
 
   it('switches the active screen on nav click', async () => {

@@ -32,3 +32,4 @@ if (typeof window !== 'undefined') {
   Element.prototype.setPointerCapture = vi.fn()
   Element.prototype.releasePointerCapture = vi.fn()
 }
+import '../src/renderer/src/i18n'

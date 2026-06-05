@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Play, TerminalSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { ScriptDef } from '@shared/types'
 import { Card, CardContent } from '../components/ui/card'
@@ -11,6 +12,7 @@ export function ScriptsTab(): JSX.Element {
   const [output, setOutput] = useState('')
   const [running, setRunning] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     api.listScripts().then(setScripts)
@@ -31,8 +33,8 @@ export function ScriptsTab(): JSX.Element {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Scripts</h1>
-        <p className="text-sm text-muted-foreground">Run MiSTer system scripts over SSH</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('nav.scripts')}</h1>
+        <p className="text-sm text-muted-foreground">{t('scripts.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +44,7 @@ export function ScriptsTab(): JSX.Element {
               <div className="font-medium">{s.label}</div>
               <div className="flex-1 text-xs text-muted-foreground">{s.description}</div>
               <Button size="sm" variant="secondary" onClick={() => run(s)} disabled={running !== null}>
-                <Play /> Run {s.label}
+                <Play /> {t('scripts.run', { label: s.label })}
               </Button>
             </CardContent>
           </Card>
@@ -52,11 +54,11 @@ export function ScriptsTab(): JSX.Element {
       <Card>
         <CardContent className="p-0">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            <TerminalSquare className="size-4" /> Output
+            <TerminalSquare className="size-4" /> {t('scripts.output')}
           </div>
           <ScrollArea className="h-64">
             <pre className="whitespace-pre-wrap p-4 font-mono text-xs text-foreground/90">
-              {output || 'No output yet — run a script to see live logs.'}
+              {output || t('scripts.noOutput')}
               <div ref={endRef} />
             </pre>
           </ScrollArea>

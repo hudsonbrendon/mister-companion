@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Trophy, Medal } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { RaSummary } from '@shared/types'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -13,43 +14,44 @@ export function RATab(): JSX.Element {
   const [apiKey, setApiKey] = useState('')
   const [summary, setSummary] = useState<RaSummary | null>(null)
   const [loading, setLoading] = useState(false)
+  const { t } = useTranslation()
 
   const load = () => {
     setLoading(true)
     api
       .raSummary(username, apiKey)
       .then((s) => setSummary(s))
-      .catch((e) => toast.error(`RetroAchievements: ${String(e)}`))
+      .catch((e) => toast.error(t('ra.error', { msg: String(e) })))
       .finally(() => setLoading(false))
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">RetroAchievements</h1>
-        <p className="text-sm text-muted-foreground">Track your hardcore progress</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('nav.ra')}</h1>
+        <p className="text-sm text-muted-foreground">{t('ra.subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Credentials</CardTitle>
+          <CardTitle className="text-base">{t('ra.credentials')}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Input
             className="w-48"
-            placeholder="RA Username"
+            placeholder={t('ra.username')}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <Input
             className="w-48"
             type="password"
-            placeholder="API Key"
+            placeholder={t('ra.apiKey')}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
           <Button onClick={load} disabled={!username || !apiKey || loading}>
-            {loading ? 'Loading…' : 'Load'}
+            {loading ? t('ra.loading') : t('ra.load')}
           </Button>
         </CardContent>
       </Card>
@@ -61,7 +63,7 @@ export function RATab(): JSX.Element {
               <CardContent className="flex items-center gap-4 p-5">
                 <Trophy className="size-7 text-pink" />
                 <div>
-                  <div className="text-xs uppercase text-muted-foreground">Hardcore points</div>
+                  <div className="text-xs uppercase text-muted-foreground">{t('ra.hardcorePoints')}</div>
                   <div className="font-mono text-2xl font-bold">{summary.hardcorePoints}</div>
                 </div>
               </CardContent>
@@ -70,7 +72,7 @@ export function RATab(): JSX.Element {
               <CardContent className="flex items-center gap-4 p-5">
                 <Medal className="size-7 text-primary" />
                 <div>
-                  <div className="text-xs uppercase text-muted-foreground">Rank</div>
+                  <div className="text-xs uppercase text-muted-foreground">{t('ra.rank')}</div>
                   <div className="font-mono text-2xl font-bold">#{summary.rank}</div>
                 </div>
               </CardContent>
@@ -78,7 +80,7 @@ export function RATab(): JSX.Element {
             <Card>
               <CardContent className="flex items-center gap-4 p-5">
                 <div>
-                  <div className="text-xs uppercase text-muted-foreground">Softcore</div>
+                  <div className="text-xs uppercase text-muted-foreground">{t('ra.softcore')}</div>
                   <div className="font-mono text-2xl font-bold">{summary.softcorePoints}</div>
                 </div>
               </CardContent>

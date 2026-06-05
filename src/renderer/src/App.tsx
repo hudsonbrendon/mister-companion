@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { TooltipProvider } from './components/ui/tooltip'
 import { Toaster } from './components/ui/sonner'
@@ -20,7 +21,8 @@ const SCREENS: Record<string, () => JSX.Element> = {
 
 export function App(): JSX.Element {
   const [active, setActive] = useState<string>('status')
-  const label = NAV.find((n) => n.id === active)?.label ?? ''
+  const { t } = useTranslation()
+  const label = t(NAV.find((n) => n.id === active)?.i18nKey ?? '')
   return (
     <TooltipProvider delayDuration={200}>
       <StatusProvider>

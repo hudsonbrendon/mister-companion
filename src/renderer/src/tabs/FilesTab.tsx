@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowUp, Folder, File as FileIcon, AlertTriangle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { SmbEntry } from '@shared/types'
 import { Card, CardContent } from '../components/ui/card'
@@ -14,6 +15,7 @@ export function FilesTab(): JSX.Element {
   const [entries, setEntries] = useState<SmbEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const { t } = useTranslation()
 
   const load = useCallback((p: string) => {
     setLoading(true)
@@ -40,13 +42,13 @@ export function FilesTab(): JSX.Element {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Files</h1>
-        <p className="text-sm text-muted-foreground">Browse the SD card over SSH</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('nav.files')}</h1>
+        <p className="text-sm text-muted-foreground">{t('files.subtitle')}</p>
       </div>
 
       <Card>
         <div className="flex items-center gap-2 border-b border-border px-4 py-2">
-          <Button size="icon" variant="ghost" onClick={up} disabled={!path} aria-label="Up">
+          <Button size="icon" variant="ghost" onClick={up} disabled={!path} aria-label={t('files.up')}>
             <ArrowUp />
           </Button>
           <div className="flex items-center gap-1 font-mono text-sm text-muted-foreground">
@@ -64,7 +66,7 @@ export function FilesTab(): JSX.Element {
               <AlertTriangle className="size-4" /> {error}
             </div>
           ) : entries.length === 0 && !loading ? (
-            <div className="p-6 text-sm text-muted-foreground">Empty folder.</div>
+            <div className="p-6 text-sm text-muted-foreground">{t('files.empty')}</div>
           ) : (
             <ScrollArea className="h-[26rem]">
               <ul className="divide-y divide-border">

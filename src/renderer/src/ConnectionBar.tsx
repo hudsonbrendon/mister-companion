@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Radar, Loader2, Cpu, SearchX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { api } from './api'
 import { DiscoveredDevice, MisterProfile } from '@shared/types'
 import { Button } from './components/ui/button'
@@ -18,6 +19,7 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     api.listProfiles().then(setProfiles).catch(() => {})
@@ -42,9 +44,9 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
       await api.startStatusFeed()
       setError(null)
       setOpen(false)
-      toast.success(`Connected to ${profile.name}`, { description: profile.host })
+      toast.success(t('connection.connectedTo', { name: profile.name }), { description: profile.host })
     } catch (e) {
-      const msg = `Connect failed: ${String(e)}`
+      const msg = t('connection.connectFailed', { error: String(e) })
       setError(msg)
       toast.error(msg)
     }
@@ -66,14 +68,14 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
     <div className="space-y-2 rounded-lg border border-border bg-background/40 p-3">
       <Button onClick={discover} disabled={busy} size="sm" variant="secondary" className="w-full">
         {busy ? <Loader2 className="animate-spin" /> : <Radar />}
-        {busy ? 'Scanning…' : 'Discover'}
+        {busy ? t('common.scanning') : t('common.discover')}
       </Button>
 
       {error && <div className="text-xs text-destructive">{error}</div>}
 
       {profiles.length > 0 && (
         <div className="space-y-1 border-t border-border pt-2">
-          <div className="px-1 text-[10px] uppercase tracking-wide text-muted-foreground">Saved</div>
+          <div className="px-1 text-[10px] uppercase tracking-wide text-muted-foreground">{t('connection.saved')}</div>
           {profiles.map((p) => (
             <button
               key={p.id}
@@ -90,23 +92,22 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Radar className="size-5 text-primary" /> Discovered MiSTers
+              <Radar className="size-5 text-primary" /> {t('connection.discoveredTitle')}
             </DialogTitle>
-            <DialogDescription>Pick a device to connect over its mrext Remote API.</DialogDescription>
+            <DialogDescription>{t('connection.discoveredDesc')}</DialogDescription>
           </DialogHeader>
 
           {busy ? (
             <div className="flex flex-col items-center gap-3 py-10 text-sm text-muted-foreground">
               <Loader2 className="size-7 animate-spin text-primary" />
-              Scanning your network…
+              {t('connection.scanningNetwork')}
             </div>
           ) : found.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-muted-foreground">
               <SearchX className="size-7" />
-              No MiSTer found. Make sure it's powered on and the mrext Remote service is running,
-              then scan again.
+              {t('connection.noneFound')}
               <Button onClick={discover} size="sm" variant="secondary">
-                <Radar /> Scan again
+                <Radar /> {t('connection.scanAgain')}
               </Button>
             </div>
           ) : (
