@@ -57,17 +57,10 @@ function showWindow(): void {
 }
 
 function trayImage(): Electron.NativeImage {
-  const asset = (name: string): string =>
-    app.isPackaged ? join(process.resourcesPath, name) : join(__dirname, '../../build', name)
-  // macOS menu bar: a monochrome template (auto-tinted white/black to match the theme,
-  // like the other menu-bar icons). Windows/Linux: the colored cat (a black template
-  // would vanish on light taskbars).
-  if (process.platform === 'darwin') {
-    const img = nativeImage.createFromPath(asset('trayTemplate.png'))
-    img.setTemplateImage(true)
-    return img
-  }
-  return nativeImage.createFromPath(asset('tray.png'))
+  const path = app.isPackaged
+    ? join(process.resourcesPath, 'tray.png')
+    : join(__dirname, '../../build/tray.png')
+  return nativeImage.createFromPath(path)
 }
 
 function updateTray(status: MisterStatus = lastStatus): void {
