@@ -17,11 +17,33 @@ jobs:
       - run: npm run lint
       - run: npm run test
 
-  package:
+  # Pre-create the GitHub Release on a tag so the parallel package jobs never race to
+  # POST /releases (which made all-but-one job 422 "already_exists" and, with fail-fast,
+  # cancel its siblings — leaving releases missing the macOS dmg). With the release
+  # already present, every electron-builder job just uploads to it.
+  create-release:
     needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "$tag" --notes "Release $tag"
+
+  package:
+    needs: [test, create-release]
+    # Run after a successful test even when create-release was skipped (branch/PR builds,
+    # which only produce artifacts and never publish).
+    if: ${{ needs.test.result == 'success' && (needs.create-release.result == 'success' || needs.create-release.result == 'skipped') }}
     permissions:
       contents: write
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
