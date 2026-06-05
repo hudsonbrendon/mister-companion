@@ -23,6 +23,7 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
   const [selected, setSelected] = useState<DiscoveredDevice | null>(null)
   const [username, setUsername] = useState('root')
   const [password, setPassword] = useState('1')
+  const [save, setSave] = useState(true)
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -47,12 +48,13 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
     setPassword('1')
   }
 
-  const connectProfile = async (profile: MisterProfile) => {
+  const connectProfile = async (profile: MisterProfile, opts?: { save?: boolean }) => {
     try {
       await api.connect(profile)
       // Start (or restart) the live status feed now that a session exists — the feed
       // started on app mount was a no-op because nothing was connected yet.
       await api.startStatusFeed()
+      if (opts?.save) setProfiles(await api.saveProfile(profile))
       setError(null)
       setOpen(false)
       toast.success(t('connection.connectedTo', { name: profile.name }), { description: profile.host })
@@ -73,7 +75,7 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
       sshPort: 22,
       sshUser: username,
       sshPassword: password
-    })
+    }, { save })
   }
 
   return (
@@ -121,6 +123,15 @@ export function ConnectionBar({ localIp }: { localIp: string }): JSX.Element {
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && connectSelected()}
                   />
+                </label>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={save}
+                    onChange={(e) => setSave(e.target.checked)}
+                    className="size-4 accent-primary"
+                  />
+                  {t('connection.saveDevice')}
                 </label>
                 <div className="flex justify-between gap-2 pt-1">
                   <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>

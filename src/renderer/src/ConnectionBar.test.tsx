@@ -4,6 +4,7 @@ import { ConnectionBar } from './ConnectionBar'
 
 const connect = vi.fn().mockResolvedValue(true)
 const discover = vi.fn().mockResolvedValue([{ host: '192.168.31.50', hostname: 'MiSTer', source: 'scan' }])
+const saveProfile = vi.fn().mockResolvedValue([])
 const toastSuccess = vi.fn()
 
 vi.mock('sonner', () => ({
@@ -13,8 +14,9 @@ vi.mock('sonner', () => ({
 beforeEach(() => {
   connect.mockClear()
   discover.mockClear()
+  saveProfile.mockClear()
   toastSuccess.mockClear()
-  const api = { listProfiles: vi.fn().mockResolvedValue([]), discover, connect, saveProfile: vi.fn().mockResolvedValue([]), startStatusFeed: vi.fn().mockResolvedValue(true) }
+  const api = { listProfiles: vi.fn().mockResolvedValue([]), discover, connect, saveProfile, startStatusFeed: vi.fn().mockResolvedValue(true) }
   ;(globalThis as any).window.api = api
 })
 
@@ -33,6 +35,8 @@ describe('ConnectionBar', () => {
     await waitFor(() => expect(connect).toHaveBeenCalled())
     expect(connect.mock.calls[0][0].host).toBe('192.168.31.50')
     expect(connect.mock.calls[0][0].sshUser).toBe('root')
+    // "Save this device" is on by default, so the profile is persisted.
+    await waitFor(() => expect(saveProfile).toHaveBeenCalledWith(expect.objectContaining({ host: '192.168.31.50' })))
     await waitFor(() => expect(toastSuccess).toHaveBeenCalled())
   })
 
