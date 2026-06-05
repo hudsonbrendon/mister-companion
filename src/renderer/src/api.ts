@@ -33,6 +33,9 @@ export interface RendererApi {
   getScreenshots(): Promise<Screenshot[]>
   takeScreenshot(): Promise<void>
   deleteScreenshot(filename: string): Promise<void>
+  readFile(path: string): Promise<string>
+  writeFile(path: string, content: string): Promise<void>
+  deleteFile(path: string, isDir: boolean): Promise<void>
 }
 
 // Forward every access to the live window.api so tests can swap window.api per-test

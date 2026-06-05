@@ -110,4 +110,16 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     const full = path ? `/media/fat/${path}` : '/media/fat'
     return session.ssh.listDir(full)
   })
+  h(IPC.readFile, (path: string) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    return session.ssh.readFile(`/media/fat/${path}`)
+  })
+  h(IPC.writeFile, (path: string, content: string) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    return session.ssh.writeFile(`/media/fat/${path}`, content)
+  })
+  h(IPC.deleteFile, (path: string, isDir: boolean) => {
+    if (!session.ssh) throw new Error('not connected over SSH')
+    return session.ssh.deleteEntry(`/media/fat/${path}`, isDir)
+  })
 }

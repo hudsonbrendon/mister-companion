@@ -187,6 +187,9 @@ export const IPC = {
   getScreenshots: 'mister:getScreenshots',
   takeScreenshot: 'mister:takeScreenshot',
   deleteScreenshot: 'mister:deleteScreenshot',
+  readFile: 'mister:readFile',
+  writeFile: 'mister:writeFile',
+  deleteFile: 'mister:deleteFile',
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',

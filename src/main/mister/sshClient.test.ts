@@ -30,7 +30,10 @@ function fakeSftpFactory(entries: { filename: string; dir: boolean; size: number
             filename: x.filename,
             attrs: { size: x.size, isDirectory: () => x.dir }
           })))
-        }
+        },
+        readFile: (_p: string, rcb: (e: unknown, data: Buffer) => void) => rcb(null, Buffer.from('hello=1')),
+        writeFile: (_p: string, _c: string, wcb: (e: unknown) => void) => wcb(null),
+        unlink: (_p: string, ucb: (e: unknown) => void) => ucb(null)
       })
     }
     client.end = () => client.emit('close')
@@ -72,6 +75,17 @@ describe('SshClient', () => {
     const entries = await ssh.listDir('/media/fat')
     expect(entries[0]).toEqual({ name: 'Scripts', isDirectory: true, size: 0 })
     expect(entries[1]).toEqual({ name: 'MiSTer.ini', isDirectory: false, size: 2048 })
+    await ssh.close()
+  })
+
+  it('readFile/writeFile round-trip and deleteEntry work over SFTP', async () => {
+    const ssh = new SshClient(
+      { host: '127.0.0.1', port: 22, username: 'root', password: '1' },
+      fakeSftpFactory([])
+    )
+    expect(await ssh.readFile('/media/fat/MiSTer.ini')).toBe('hello=1')
+    await expect(ssh.writeFile('/media/fat/MiSTer.ini', 'x=2')).resolves.toBeUndefined()
+    await expect(ssh.deleteEntry('/media/fat/x.txt', false)).resolves.toBeUndefined()
     await ssh.close()
   })
 })

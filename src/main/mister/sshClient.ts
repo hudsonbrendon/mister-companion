@@ -86,6 +86,44 @@ export class SshClient {
     })
   }
 
+  // Read a remote text file over SFTP.
+  async readFile(path: string): Promise<string> {
+    const c = await this.connect()
+    return new Promise((resolve, reject) => {
+      c.sftp((err, sftp) => {
+        if (err) return reject(err)
+        sftp.readFile(path, (e, data) => (e ? reject(e) : resolve(data.toString('utf8'))))
+      })
+    })
+  }
+
+  // Overwrite a remote file with the given text.
+  async writeFile(path: string, content: string): Promise<void> {
+    const c = await this.connect()
+    return new Promise((resolve, reject) => {
+      c.sftp((err, sftp) => {
+        if (err) return reject(err)
+        sftp.writeFile(path, content, (e) => (e ? reject(e) : resolve()))
+      })
+    })
+  }
+
+  // Delete a remote file or (empty/non-empty) directory over SFTP.
+  async deleteEntry(path: string, isDirectory: boolean): Promise<void> {
+    if (isDirectory) {
+      // rm -rf is the only reliable recursive delete; SFTP rmdir fails on non-empty dirs.
+      await this.exec(`rm -rf "${path.replace(/"/g, '\\"')}"`)
+      return
+    }
+    const c = await this.connect()
+    return new Promise((resolve, reject) => {
+      c.sftp((err, sftp) => {
+        if (err) return reject(err)
+        sftp.unlink(path, (e) => (e ? reject(e) : resolve()))
+      })
+    })
+  }
+
   async close(): Promise<void> {
     this.client?.end()
     this.client = null

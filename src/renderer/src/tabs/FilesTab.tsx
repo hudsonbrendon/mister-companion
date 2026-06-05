@@ -1,21 +1,36 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowUp, Folder, File as FileIcon, AlertTriangle, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { ArrowUp, Folder, File as FileIcon, AlertTriangle, Loader2, Trash2, Save } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { SmbEntry } from '@shared/types'
 import { Card, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { ScrollArea } from '../components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose
+} from '../components/ui/dialog'
 import { gb } from '../lib/format'
 
 const SHARE = 'sdcard'
+const TEXT_RE = /\.(ini|txt|cfg|log|sh|json|md|csv|ya?ml|conf)$/i
 
 export function FilesTab(): JSX.Element {
   const [path, setPath] = useState('')
   const [entries, setEntries] = useState<SmbEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [editing, setEditing] = useState<{ name: string; content: string } | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [toDelete, setToDelete] = useState<SmbEntry | null>(null)
   const { t } = useTranslation()
+
+  const full = (name: string): string => (path ? `${path}/${name}` : name)
 
   const load = useCallback((p: string) => {
     setLoading(true)
@@ -34,8 +49,42 @@ export function FilesTab(): JSX.Element {
   }, [path, load])
 
   const open = (entry: SmbEntry) => {
-    if (entry.isDirectory) setPath(path ? `${path}/${entry.name}` : entry.name)
+    if (entry.isDirectory) {
+      setPath(full(entry.name))
+    } else if (TEXT_RE.test(entry.name)) {
+      api
+        .readFile(full(entry.name))
+        .then((content) => setEditing({ name: entry.name, content }))
+        .catch((e) => toast.error(String(e)))
+    }
   }
+
+  const save = async () => {
+    if (!editing) return
+    setSaving(true)
+    try {
+      await api.writeFile(full(editing.name), editing.content)
+      toast.success(t('files.saved'), { description: editing.name })
+      setEditing(null)
+    } catch (e) {
+      toast.error(String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!toDelete) return
+    const target = toDelete
+    setToDelete(null)
+    try {
+      await api.deleteFile(full(target.name), target.isDirectory)
+      load(path)
+    } catch (e) {
+      toast.error(String(e))
+    }
+  }
+
   const up = () => setPath(path.split('/').slice(0, -1).join('/'))
   const crumbs = path ? path.split('/') : []
 
@@ -71,10 +120,10 @@ export function FilesTab(): JSX.Element {
             <ScrollArea className="h-[26rem]">
               <ul className="divide-y divide-border">
                 {entries.map((e) => (
-                  <li key={e.name}>
+                  <li key={e.name} className="group flex items-center hover:bg-accent">
                     <button
                       onClick={() => open(e)}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-accent"
+                      className="flex flex-1 items-center gap-3 px-4 py-2.5 text-left text-sm"
                     >
                       {e.isDirectory ? (
                         <Folder className="size-4 text-primary" />
@@ -86,6 +135,15 @@ export function FilesTab(): JSX.Element {
                         <span className="font-mono text-xs text-muted-foreground">{gb(e.size)}</span>
                       )}
                     </button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="mr-2 size-7 shrink-0 opacity-0 group-hover:opacity-100"
+                      onClick={() => setToDelete(e)}
+                      aria-label={`${t('files.delete')} ${e.name}`}
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -93,6 +151,49 @@ export function FilesTab(): JSX.Element {
           )}
         </CardContent>
       </Card>
+
+      {/* Text editor */}
+      <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-mono">{editing?.name}</DialogTitle>
+          </DialogHeader>
+          <textarea
+            value={editing?.content ?? ''}
+            onChange={(e) => setEditing((prev) => (prev ? { ...prev, content: e.target.value } : prev))}
+            spellCheck={false}
+            className="h-[24rem] w-full resize-none rounded-md border border-input bg-background/60 p-3 font-mono text-xs outline-none focus-visible:border-primary"
+          />
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="ghost">{t('files.cancel')}</Button>
+            </DialogClose>
+            <Button onClick={save} disabled={saving}>
+              <Save /> {t('files.save')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <Dialog open={toDelete !== null} onOpenChange={(o) => !o && setToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('files.delete')}</DialogTitle>
+            <DialogDescription>{t('files.deleteConfirm', { name: toDelete?.name ?? '' })}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="ghost">{t('files.cancel')}</Button>
+            </DialogClose>
+            <DialogClose asChild>
+              <Button variant="destructive" onClick={confirmDelete}>
+                <Trash2 /> {t('files.delete')}
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
