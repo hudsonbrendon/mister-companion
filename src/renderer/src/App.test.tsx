@@ -3,23 +3,36 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { App } from './App'
 
 beforeEach(() => {
-  (globalThis as any).window.api = {
+  ;(globalThis as any).window.api = {
     listProfiles: vi.fn().mockResolvedValue([]),
+    discover: vi.fn().mockResolvedValue([]),
+    connect: vi.fn().mockResolvedValue(true),
+    saveProfile: vi.fn().mockResolvedValue([]),
     startStatusFeed: vi.fn().mockResolvedValue(true),
     onStatusUpdate: vi.fn().mockReturnValue(() => {}),
+    onScriptOutput: vi.fn().mockReturnValue(() => {}),
     listScripts: vi.fn().mockResolvedValue([]),
-    onScriptOutput: vi.fn().mockReturnValue(() => {})
+    smbList: vi.fn().mockResolvedValue([])
   }
 })
 
-describe('App', () => {
-  it('renders the five tabs and switches the active tab on click', async () => {
+describe('App shell', () => {
+  it('renders a vertical tablist with the five screens and the brand', async () => {
     render(<App />)
+    expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical')
     expect(screen.getByRole('tab', { name: /status/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /control/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /scripts/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /files/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /retroachievements/i })).toBeInTheDocument()
+    expect(screen.getByAltText(/mister companion/i)).toBeInTheDocument()
+  })
+
+  it('switches the active screen on nav click', async () => {
+    render(<App />)
     fireEvent.click(screen.getByRole('tab', { name: /scripts/i }))
-    // Flush ScriptsTab's async listScripts() state update to avoid act() warning.
-    await waitFor(() => expect((globalThis as any).window.api.listScripts).toHaveBeenCalled())
-    expect(screen.getByRole('tab', { name: /scripts/i })).toHaveAttribute('aria-selected', 'true')
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /scripts/i })).toHaveAttribute('aria-selected', 'true')
+    )
   })
 })
