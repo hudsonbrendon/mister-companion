@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { App } from './App'
 
 beforeEach(() => {
-  ;(globalThis as any).window.api = {
+  (globalThis as any).window.api = {
     listProfiles: vi.fn().mockResolvedValue([]),
     discover: vi.fn().mockResolvedValue([]),
     connect: vi.fn().mockResolvedValue(true),
@@ -18,7 +18,7 @@ beforeEach(() => {
 
 describe('App shell', () => {
   it('renders a vertical tablist with the five screens and the brand', async () => {
-    render(<App />)
+    await act(async () => { render(<App />) })
     expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical')
     expect(screen.getByRole('tab', { name: /status/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /control/i })).toBeInTheDocument()
@@ -29,7 +29,7 @@ describe('App shell', () => {
   })
 
   it('switches the active screen on nav click', async () => {
-    render(<App />)
+    await act(async () => { render(<App />) })
     fireEvent.click(screen.getByRole('tab', { name: /scripts/i }))
     await waitFor(() =>
       expect(screen.getByRole('tab', { name: /scripts/i })).toHaveAttribute('aria-selected', 'true')

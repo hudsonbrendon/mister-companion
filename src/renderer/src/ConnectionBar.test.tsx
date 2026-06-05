@@ -14,12 +14,8 @@ beforeEach(() => {
   connect.mockClear()
   discover.mockClear()
   toastSuccess.mockClear()
-  ;(globalThis as any).window.api = {
-    listProfiles: vi.fn().mockResolvedValue([]),
-    discover,
-    connect,
-    saveProfile: vi.fn().mockResolvedValue([])
-  }
+  const api = { listProfiles: vi.fn().mockResolvedValue([]), discover, connect, saveProfile: vi.fn().mockResolvedValue([]) }
+  ;(globalThis as any).window.api = api
 })
 
 describe('ConnectionBar', () => {
@@ -34,7 +30,7 @@ describe('ConnectionBar', () => {
   })
 
   it('renders saved profiles and connects on click', async () => {
-    ;(window.api as any).listProfiles = vi
+    (window.api as any).listProfiles = vi
       .fn()
       .mockResolvedValue([{ id: 'p1', name: 'Saved', host: '192.168.31.99', restPort: 8182, sshPort: 22 }])
     render(<ConnectionBar localIp="192.168.31.20" />)

@@ -7,7 +7,7 @@ import { emptyStatus } from '@shared/types'
 let pushStatus: (s: any) => void = () => {}
 
 beforeEach(() => {
-  ;(globalThis as any).window.api = {
+  (globalThis as any).window.api = {
     startStatusFeed: vi.fn().mockResolvedValue(true),
     onStatusUpdate: (cb: (s: any) => void) => {
       pushStatus = cb
