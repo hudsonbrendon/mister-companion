@@ -22,6 +22,7 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 1100,
     height: 720,
+    icon: join(__dirname, '../../build/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false

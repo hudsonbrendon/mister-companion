@@ -1,4 +1,8 @@
-# MiSTer Companion
+<div align="center">
+  <img src="assets/logo.png" alt="MiSTer Companion" width="180" />
+
+  # MiSTer Companion
+</div>
 
 Cross-platform desktop companion for **MiSTer FPGA** (macOS / Windows / Linux).
 Discover your MiSTer on the LAN, watch live status, launch games, reboot, run system

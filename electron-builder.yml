@@ -12,11 +12,14 @@ mac:
   category: public.app-category.utilities
   # No paid Developer ID; afterPack.js applies an ad-hoc signature instead.
   identity: null
+  icon: build/icon.png
 win:
   target: [nsis]
+  icon: build/icon.png
 linux:
   target: [AppImage]
   category: Utility
+  icon: build/icon.png
 publish:
   provider: github
   owner: hudsonbrendon
