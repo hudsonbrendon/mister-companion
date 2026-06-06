@@ -1,4 +1,4 @@
-import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot, InisData, MusicStatus } from '@shared/types'
+import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot, InisData, MusicStatus, ScriptDef } from '@shared/types'
 
 // mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
 // System info and the currently-running core/game live on two separate endpoints.
@@ -12,6 +12,7 @@ export const REST_PATHS = {
   searchSystems: '/api/games/search/systems',
   systems: '/api/systems',
   inis: '/api/settings/inis',
+  scriptsList: '/api/scripts/list',
   musicStatus: '/api/music/status',
   musicPlay: '/api/music/play',
   musicStop: '/api/music/stop',
@@ -177,6 +178,27 @@ export class RestClient {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ active: id })
     })
+  }
+
+  // All real scripts present on the device's Scripts folder (GET /api/scripts/list).
+  // Filters out macOS AppleDouble junk (._*) and non-.sh entries; sorted by name.
+  async listScripts(): Promise<ScriptDef[]> {
+    try {
+      const res = await this.request(REST_PATHS.scriptsList)
+      if (!res.ok) return []
+      const b = (await res.json()) as { scripts?: { name?: string; filename?: string; path?: string }[] }
+      return (b.scripts ?? [])
+        .filter((s) => s.filename && !s.filename.startsWith('._') && s.filename.endsWith('.sh'))
+        .map((s) => ({
+          id: s.filename as string,
+          label: (s.name ?? s.filename ?? '').replace(/\.sh$/, ''),
+          description: (s.path ?? '').replace('/media/fat/', ''),
+          command: s.path as string
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+    } catch {
+      return []
+    }
   }
 
   // MiSTer background-music (BGM) control. The service is only meaningful when the BGM

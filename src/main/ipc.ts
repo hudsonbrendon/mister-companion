@@ -1,10 +1,10 @@
 import type { IpcMain } from 'electron'
-import { IPC, MisterProfile, emptyStatus } from '@shared/types'
+import { IPC, MisterProfile, ScriptDef, emptyStatus } from '@shared/types'
 import { RestClient } from './mister/restClient'
 import { SshClient } from './mister/sshClient'
 import { ProfileStore } from './store'
 import { scanHosts, subnetHosts, browseMdns, mergeDevices } from './mister/discovery'
-import { SCRIPT_CATALOG, runScript } from './mister/scripts'
+import { runScriptCommand } from './mister/scripts'
 import { RaWebClient } from './mister/raWeb'
 import { localIpv4 } from './net'
 
@@ -13,6 +13,7 @@ export interface Session {
   rest: RestClient | null
   ssh: SshClient | null
   current: MisterProfile | null
+  scripts?: ScriptDef[]
   emit?: (channel: string, payload: unknown) => void
 }
 
@@ -61,10 +62,18 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
   })
 
   h(IPC.sshProbe, () => session.ssh?.probe())
-  h(IPC.listScripts, () => SCRIPT_CATALOG)
+  h(IPC.listScripts, async () => {
+    const scripts = (await session.rest?.listScripts()) ?? []
+    session.scripts = scripts
+    return scripts
+  })
   h(IPC.runScript, (id: string) => {
     if (!session.ssh) throw new Error('not connected over SSH')
-    return runScript(session.ssh, id, (chunk) => session.emit?.(IPC.scriptOutput, { id, chunk }))
+    const script = session.scripts?.find((s) => s.id === id)
+    if (!script) throw new Error(`unknown script: ${id}`)
+    return runScriptCommand(session.ssh, script.command, (chunk) =>
+      session.emit?.(IPC.scriptOutput, { id, chunk })
+    )
   })
 
   h(IPC.raSummary, (username: string, apiKey: string) =>
