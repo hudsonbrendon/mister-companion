@@ -18,7 +18,9 @@ beforeEach(() => {
     setWallpaper,
     unsetWallpaper: vi.fn().mockResolvedValue(undefined),
     takeScreenshot: vi.fn().mockResolvedValue(undefined),
-    deleteScreenshot: vi.fn().mockResolvedValue(undefined)
+    deleteScreenshot: vi.fn().mockResolvedValue(undefined),
+    musicStatus: vi.fn().mockResolvedValue({ running: false, playing: false, playback: '', playlist: '', track: '' }),
+    musicPlaylists: vi.fn().mockResolvedValue([])
   }
 })
 

@@ -1,4 +1,4 @@
-import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot, InisData } from '@shared/types'
+import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot, InisData, MusicStatus } from '@shared/types'
 
 // mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
 // System info and the currently-running core/game live on two separate endpoints.
@@ -12,6 +12,12 @@ export const REST_PATHS = {
   searchSystems: '/api/games/search/systems',
   systems: '/api/systems',
   inis: '/api/settings/inis',
+  musicStatus: '/api/music/status',
+  musicPlay: '/api/music/play',
+  musicStop: '/api/music/stop',
+  musicNext: '/api/music/next',
+  musicPlayback: '/api/music/playback',
+  musicPlaylist: '/api/music/playlist',
   index: '/api/games/index',
   control: '/api/controls/keyboard',
   wallpapers: '/api/wallpapers',
@@ -171,6 +177,57 @@ export class RestClient {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ active: id })
     })
+  }
+
+  // MiSTer background-music (BGM) control. The service is only meaningful when the BGM
+  // addon is running on the device.
+  async getMusicStatus(): Promise<MusicStatus> {
+    const off: MusicStatus = { running: false, playing: false, playback: '', playlist: '', track: '' }
+    try {
+      const res = await this.request(REST_PATHS.musicStatus)
+      if (!res.ok) return off
+      const b = (await res.json()) as Partial<MusicStatus>
+      return {
+        running: !!b.running,
+        playing: !!b.playing,
+        playback: b.playback ?? '',
+        playlist: b.playlist ?? '',
+        track: b.track ?? ''
+      }
+    } catch {
+      return off
+    }
+  }
+
+  async getMusicPlaylists(): Promise<string[]> {
+    try {
+      const res = await this.request(REST_PATHS.musicPlaylist)
+      if (!res.ok) return []
+      const b = (await res.json()) as unknown
+      return Array.isArray(b) ? (b as string[]) : []
+    } catch {
+      return []
+    }
+  }
+
+  async musicPlay(): Promise<void> {
+    await this.request(REST_PATHS.musicPlay, { method: 'POST' })
+  }
+
+  async musicStop(): Promise<void> {
+    await this.request(REST_PATHS.musicStop, { method: 'POST' })
+  }
+
+  async musicNext(): Promise<void> {
+    await this.request(REST_PATHS.musicNext, { method: 'POST' })
+  }
+
+  async setMusicPlayback(type: string): Promise<void> {
+    await this.request(`${REST_PATHS.musicPlayback}/${type}`, { method: 'POST' })
+  }
+
+  async setMusicPlaylist(name: string): Promise<void> {
+    await this.request(`${REST_PATHS.musicPlaylist}/${encodeURIComponent(name)}`, { method: 'POST' })
   }
 
   async searchSystems(): Promise<GameSystem[]> {

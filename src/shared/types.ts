@@ -161,6 +161,14 @@ export interface InisData {
   inis: IniProfile[]
 }
 
+export interface MusicStatus {
+  running: boolean
+  playing: boolean
+  playback: string
+  playlist: string
+  track: string
+}
+
 export interface IndexStatus {
   exists: boolean
   indexing: boolean
@@ -193,6 +201,13 @@ export const IPC = {
   readIni: 'mister:readIni',
   writeIni: 'mister:writeIni',
   setActiveIni: 'mister:setActiveIni',
+  musicStatus: 'mister:musicStatus',
+  musicPlaylists: 'mister:musicPlaylists',
+  musicPlay: 'mister:musicPlay',
+  musicStop: 'mister:musicStop',
+  musicNext: 'mister:musicNext',
+  musicPlayback: 'mister:musicPlayback',
+  musicSetPlaylist: 'mister:musicSetPlaylist',
   generateIndex: 'mister:generateIndex',
   sendKey: 'mister:sendKey',
   raRecent: 'mister:raRecent',

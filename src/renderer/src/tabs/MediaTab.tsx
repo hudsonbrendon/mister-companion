@@ -7,6 +7,7 @@ import { Wallpaper, Screenshot } from '@shared/types'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { ScrollArea } from '../components/ui/scroll-area'
+import { MusicPlayer } from '../components/MusicPlayer'
 import { cn } from '../lib/utils'
 
 export function MediaTab(): JSX.Element {
@@ -65,6 +66,8 @@ export function MediaTab(): JSX.Element {
         <h1 className="text-2xl font-bold tracking-tight">{t('nav.media')}</h1>
         <p className="text-sm text-muted-foreground">{t('media.subtitle')}</p>
       </div>
+
+      <MusicPlayer />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">

@@ -86,6 +86,21 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     if (!session.rest) throw new Error('not connected')
     return session.rest.setActiveIni(id)
   })
+  h(IPC.musicStatus, () =>
+    session.rest?.getMusicStatus() ??
+    Promise.resolve({ running: false, playing: false, playback: '', playlist: '', track: '' }))
+  h(IPC.musicPlaylists, () => session.rest?.getMusicPlaylists() ?? Promise.resolve([]))
+  h(IPC.musicPlay, () => { if (!session.rest) throw new Error('not connected'); return session.rest.musicPlay() })
+  h(IPC.musicStop, () => { if (!session.rest) throw new Error('not connected'); return session.rest.musicStop() })
+  h(IPC.musicNext, () => { if (!session.rest) throw new Error('not connected'); return session.rest.musicNext() })
+  h(IPC.musicPlayback, (type: string) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.setMusicPlayback(type)
+  })
+  h(IPC.musicSetPlaylist, (name: string) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.setMusicPlaylist(name)
+  })
   h(IPC.searchGames, (query: string, system: string) =>
     session.rest?.searchGames(query, system) ?? Promise.resolve([]))
   h(IPC.generateIndex, () => {

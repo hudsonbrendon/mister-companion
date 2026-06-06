@@ -12,5 +12,6 @@
   "palette": { "placeholder": "搜索并启动游戏…", "hint": "输入以搜索整个游戏库。" },
   "update": { "available": "有可用更新：v{{version}}", "view": "查看发布", "update": "更新", "upToDate": "已是最新", "confirmTitle": "更新 MiSTer Companion？", "confirmDesc": "版本 v{{version}} 可用。立即通过 Homebrew 更新？", "confirmCta": "立即更新", "updating": "更新中…", "updateDone": "更新完成！", "relaunch": "立即重启", "updateFailed": "更新失败", "brewNotFound": "未找到 Homebrew。打开下载页面手动更新。", "openDownload": "打开下载", "cancel": "取消" },
   "theme": { "light": "浅色", "dark": "深色", "system": "系统" },
-  "media": { "subtitle": "截图和壁纸", "screenshots": "截图", "wallpapers": "壁纸", "take": "截图", "noScreenshots": "暂无截图。", "default": "默认", "active": "使用中", "taken": "已截图", "noCapture": "未捕获到内容 — 运行中的核心可能不支持截图。", "set": "已设置壁纸" }
+  "music": { "title": "音乐", "off": "MiSTer 背景音乐服务未运行。", "nothingPlaying": "未在播放", "play": "播放", "stop": "停止", "next": "下一首", "playlist": "播放列表", "modeRandom": "随机", "modeLoop": "循环", "modeDisabled": "关闭" },
+  "media": { "subtitle": "音乐、截图和壁纸", "screenshots": "截图", "wallpapers": "壁纸", "take": "截图", "noScreenshots": "暂无截图。", "default": "默认", "active": "使用中", "taken": "已截图", "noCapture": "未捕获到内容 — 运行中的核心可能不支持截图。", "set": "已设置壁纸" }
 }
