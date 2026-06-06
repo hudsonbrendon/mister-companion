@@ -19,6 +19,7 @@ export interface RendererApi {
   onStatusUpdate(cb: (s: MisterStatus) => void): () => void
   onScriptOutput(cb: (o: { id: string; chunk: string }) => void): () => void
   searchSystems(): Promise<GameSystem[]>
+  listSystems(): Promise<GameSystem[]>
   searchGames(query: string, system: string): Promise<GameResult[]>
   generateIndex(): Promise<void>
   onIndexStatus(cb: (s: IndexStatus) => void): () => void

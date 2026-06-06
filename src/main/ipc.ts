@@ -71,6 +71,7 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     new RaWebClient(username, apiKey).getGameProgress(gameId))
 
   h(IPC.searchSystems, () => session.rest?.searchSystems() ?? Promise.resolve([]))
+  h(IPC.listSystems, () => session.rest?.listSystems() ?? Promise.resolve([]))
   h(IPC.searchGames, (query: string, system: string) =>
     session.rest?.searchGames(query, system) ?? Promise.resolve([]))
   h(IPC.generateIndex, () => {

@@ -6,6 +6,7 @@ import { Toaster } from './components/ui/sonner'
 import { Sidebar, NAV } from './components/Sidebar'
 import { UpdateBanner } from './components/UpdateBanner'
 import { StatusTab } from './tabs/StatusTab'
+import { GamesTab } from './tabs/GamesTab'
 import { ControlTab } from './tabs/ControlTab'
 import { ScriptsTab } from './tabs/ScriptsTab'
 import { FilesTab } from './tabs/FilesTab'
@@ -15,6 +16,7 @@ import { StatusProvider } from './hooks/status-context'
 
 const SCREENS: Record<string, () => JSX.Element> = {
   status: () => <StatusTab />,
+  games: () => <GamesTab />,
   control: () => <ControlTab />,
   scripts: () => <ScriptsTab />,
   files: () => <FilesTab />,

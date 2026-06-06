@@ -1,4 +1,4 @@
-import { Activity, Gamepad2, Terminal, FolderOpen, Trophy, Image } from 'lucide-react'
+import { Activity, Gamepad2, LibraryBig, Terminal, FolderOpen, Trophy, Image } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { StatusDot } from './StatusDot'
@@ -10,12 +10,13 @@ import { useStatusContext } from '../hooks/status-context'
 
 export interface NavItem {
   id: string
-  i18nKey: 'nav.status' | 'nav.control' | 'nav.scripts' | 'nav.files' | 'nav.media' | 'nav.ra'
+  i18nKey: 'nav.status' | 'nav.games' | 'nav.control' | 'nav.scripts' | 'nav.files' | 'nav.media' | 'nav.ra'
   icon: React.ComponentType<{ className?: string }>
 }
 
 export const NAV: NavItem[] = [
   { id: 'status', i18nKey: 'nav.status', icon: Activity },
+  { id: 'games', i18nKey: 'nav.games', icon: LibraryBig },
   { id: 'control', i18nKey: 'nav.control', icon: Gamepad2 },
   { id: 'scripts', i18nKey: 'nav.scripts', icon: Terminal },
   { id: 'files', i18nKey: 'nav.files', icon: FolderOpen },

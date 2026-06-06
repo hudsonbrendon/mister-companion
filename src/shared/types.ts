@@ -175,6 +175,7 @@ export const IPC = {
   smbList: 'mister:smbList',
   searchGames: 'mister:searchGames',
   searchSystems: 'mister:searchSystems',
+  listSystems: 'mister:listSystems',
   generateIndex: 'mister:generateIndex',
   sendKey: 'mister:sendKey',
   raRecent: 'mister:raRecent',

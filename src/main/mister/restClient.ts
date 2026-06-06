@@ -9,6 +9,7 @@ export const REST_PATHS = {
   reboot: '/api/settings/system/reboot',
   search: '/api/games/search',
   searchSystems: '/api/games/search/systems',
+  systems: '/api/systems',
   index: '/api/games/index',
   control: '/api/controls/keyboard',
   wallpapers: '/api/wallpapers',
@@ -128,6 +129,21 @@ export class RestClient {
       if (!res.ok) return []
       const body = (await res.json()) as { systems?: GameSystem[] }
       return body.systems ?? []
+    } catch {
+      return []
+    }
+  }
+
+  // All installed systems/platforms with their category (Console/Computer/Other), from
+  // /api/systems — works without a search index (lists what cores exist on the device).
+  // The device returns a bare array; tolerate a {systems:[]} wrapper too.
+  async listSystems(): Promise<GameSystem[]> {
+    try {
+      const res = await this.request(REST_PATHS.systems)
+      if (!res.ok) return []
+      const body = (await res.json()) as GameSystem[] | { systems?: GameSystem[] }
+      const arr = Array.isArray(body) ? body : (body.systems ?? [])
+      return arr.map((s) => ({ id: s.id, name: s.name, category: s.category }))
     } catch {
       return []
     }
