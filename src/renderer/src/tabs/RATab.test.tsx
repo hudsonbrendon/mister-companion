@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { RATab } from './RATab'
 
 const raSummary = vi.fn().mockResolvedValue({
@@ -27,6 +27,7 @@ beforeEach(() => {
   raSummary.mockClear()
   raRecent.mockClear()
   raGameProgress.mockClear()
+  localStorage.clear()
   ;(globalThis as any).window.api = { raSummary, raRecent, raGameProgress }
 })
 
@@ -53,5 +54,17 @@ describe('RATab', () => {
     fireEvent.click(screen.getByText('Sonic'))
     expect(raGameProgress).toHaveBeenCalledWith('hudson', 'key', 1)
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+  })
+
+  it('persists credentials and restores them after the tab is reopened', async () => {
+    const { unmount } = render(<RATab />)
+    fireEvent.change(screen.getByPlaceholderText(/username/i), { target: { value: 'hudson' } })
+    fireEvent.change(screen.getByPlaceholderText(/api key/i), { target: { value: 'secret-key' } })
+    unmount()
+    cleanup()
+
+    render(<RATab />)
+    expect(screen.getByPlaceholderText(/username/i)).toHaveValue('hudson')
+    expect(screen.getByPlaceholderText(/api key/i)).toHaveValue('secret-key')
   })
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Trophy, Medal, Award, CheckCircle2, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -12,15 +12,32 @@ import { ScrollArea } from '../components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog'
 import { cn } from '../lib/utils'
 
+// RA credentials are persisted locally so they survive closing the tab / app. The mrext
+// API has no RA store; we keep our own in localStorage, mirroring theme.ts / library-store.ts.
+const RA_USER_KEY = 'ra.username'
+const RA_KEY_KEY = 'ra.apiKey'
+
+const readStored = (key: string): string => {
+  if (typeof localStorage === 'undefined') return ''
+  return localStorage.getItem(key) ?? ''
+}
+
 export function RATab(): JSX.Element {
-  const [username, setUsername] = useState('')
-  const [apiKey, setApiKey] = useState('')
+  const [username, setUsername] = useState(() => readStored(RA_USER_KEY))
+  const [apiKey, setApiKey] = useState(() => readStored(RA_KEY_KEY))
   const [summary, setSummary] = useState<RaSummary | null>(null)
   const [recent, setRecent] = useState<RaRecentUnlock[]>([])
   const [detail, setDetail] = useState<RaGameDetail | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(RA_USER_KEY, username)
+  }, [username])
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(RA_KEY_KEY, apiKey)
+  }, [apiKey])
 
   const load = () => {
     setLoading(true)
