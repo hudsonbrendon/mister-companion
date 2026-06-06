@@ -244,7 +244,11 @@ export class RestClient {
           filename: s.filename as string,
           game: s.game ?? '',
           core: s.core ?? '',
-          imageUrl: this.mediaUrl(`${REST_PATHS.screenshots}/${encodeURIComponent(s.filename as string)}`)
+          // The view endpoint is /screenshots/{core}/{filename} — the core segment is
+          // required, otherwise the <img> 404s.
+          imageUrl: this.mediaUrl(
+            `${REST_PATHS.screenshots}/${s.core ? encodeURIComponent(s.core) + '/' : ''}${encodeURIComponent(s.filename as string)}`
+          )
         }))
     } catch {
       return []

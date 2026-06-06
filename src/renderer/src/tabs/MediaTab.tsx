@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Camera, Image as ImageIcon, Trash2, Ban } from 'lucide-react'
+import { Camera, Image as ImageIcon, Trash2, Ban, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { Wallpaper, Screenshot } from '@shared/types'
@@ -14,6 +14,7 @@ export function MediaTab(): JSX.Element {
   const [wallpapers, setWallpapers] = useState<Wallpaper[]>([])
   const [activeWp, setActiveWp] = useState('')
   const [shots, setShots] = useState<Screenshot[]>([])
+  const [taking, setTaking] = useState(false)
 
   const refresh = useCallback(() => {
     api.getWallpapers().then((d) => {
@@ -31,7 +32,31 @@ export function MediaTab(): JSX.Element {
     refresh()
   }
   const clearWp = async () => { await api.unsetWallpaper(); refresh() }
-  const take = async () => { await api.takeScreenshot(); toast.success(t('media.taken')); setTimeout(refresh, 800) }
+
+  // mrext's "take screenshot" can't report success (it just pokes /dev/MiSTer_cmd), and
+  // the MiSTer only writes a file when the running core actually supports it. So instead
+  // of claiming success blindly, poll the list for a few seconds and confirm a NEW file
+  // appeared — otherwise tell the user nothing was captured.
+  const take = async () => {
+    setTaking(true)
+    const before = new Set(shots.map((s) => s.filename))
+    try {
+      await api.takeScreenshot()
+      for (let i = 0; i < 8; i++) {
+        await new Promise((r) => setTimeout(r, 800))
+        const list = await api.getScreenshots()
+        setShots(list)
+        if (list.some((s) => !before.has(s.filename))) {
+          toast.success(t('media.taken'))
+          return
+        }
+      }
+      toast.warning(t('media.noCapture'))
+    } finally {
+      setTaking(false)
+    }
+  }
+
   const del = async (s: Screenshot) => { await api.deleteScreenshot(s.filename); refresh() }
 
   return (
@@ -46,8 +71,8 @@ export function MediaTab(): JSX.Element {
           <CardTitle className="flex items-center gap-2 text-base">
             <Camera className="size-4 text-primary" /> {t('media.screenshots')}
           </CardTitle>
-          <Button size="sm" onClick={take}>
-            <Camera /> {t('media.take')}
+          <Button size="sm" onClick={take} disabled={taking}>
+            {taking ? <Loader2 className="animate-spin" /> : <Camera />} {t('media.take')}
           </Button>
         </CardHeader>
         <CardContent>
