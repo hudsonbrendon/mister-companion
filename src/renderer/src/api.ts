@@ -27,6 +27,9 @@ export interface RendererApi {
   raGameProgress(username: string, apiKey: string, gameId: number): Promise<RaGameDetail>
   checkUpdate(): Promise<UpdateInfo>
   openExternal(url: string): Promise<void>
+  selfUpdate(): Promise<{ ok: boolean; message: string }>
+  relaunchApp(): Promise<void>
+  onSelfUpdateOutput(cb: (line: string) => void): () => void
   getWallpapers(): Promise<WallpapersData>
   setWallpaper(filename: string): Promise<void>
   unsetWallpaper(): Promise<void>

@@ -35,6 +35,13 @@ const api = {
   raGameProgress: (u: string, k: string, gameId: number) => ipcRenderer.invoke(IPC.raGameProgress, u, k, gameId),
   checkUpdate: () => ipcRenderer.invoke(IPC.checkUpdate),
   openExternal: (url: string) => ipcRenderer.invoke(IPC.openExternal, url),
+  selfUpdate: () => ipcRenderer.invoke(IPC.selfUpdate),
+  relaunchApp: () => ipcRenderer.invoke(IPC.relaunchApp),
+  onSelfUpdateOutput: (cb: (line: string) => void) => {
+    const listener = (_e: unknown, line: string): void => cb(line)
+    ipcRenderer.on(IPC.selfUpdateOutput, listener)
+    return () => ipcRenderer.removeListener(IPC.selfUpdateOutput, listener)
+  },
   getWallpapers: () => ipcRenderer.invoke(IPC.getWallpapers),
   setWallpaper: (f: string) => ipcRenderer.invoke(IPC.setWallpaper, f),
   unsetWallpaper: () => ipcRenderer.invoke(IPC.unsetWallpaper),

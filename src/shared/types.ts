@@ -181,6 +181,8 @@ export const IPC = {
   raGameProgress: 'mister:raGameProgress',
   checkUpdate: 'app:checkUpdate',
   openExternal: 'app:openExternal',
+  selfUpdate: 'app:selfUpdate',
+  relaunchApp: 'app:relaunchApp',
   getWallpapers: 'mister:getWallpapers',
   setWallpaper: 'mister:setWallpaper',
   unsetWallpaper: 'mister:unsetWallpaper',
@@ -196,5 +198,6 @@ export const IPC = {
   // main → renderer events (send/on)
   statusUpdate: 'mister:statusUpdate',
   scriptOutput: 'mister:scriptOutput',
-  indexStatus: 'mister:indexStatus'
+  indexStatus: 'mister:indexStatus',
+  selfUpdateOutput: 'app:selfUpdateOutput'
 } as const

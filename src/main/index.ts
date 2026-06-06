@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell, dialog } from 'electron'
 import { join, basename } from 'node:path'
+import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { createHandlers, Session } from './ipc'
 import { ProfileStore } from './store'
 import { RestClient } from './mister/restClient'
@@ -26,6 +28,34 @@ async function checkUpdate(): Promise<UpdateInfo> {
   } catch {
     return { current, latest: current, url: '', hasUpdate: false }
   }
+}
+
+const UPDATE_CASK = 'mister-companion'
+
+// Homebrew lives outside the app's PATH; check the two standard locations.
+function findBrew(): string | null {
+  for (const p of ['/opt/homebrew/bin/brew', '/usr/local/bin/brew']) {
+    if (existsSync(p)) return p
+  }
+  return null
+}
+
+// Run a command, streaming each output line to `onLine`. Resolves with the exit code.
+function runStreamed(cmd: string, args: string[], onLine: (line: string) => void): Promise<number> {
+  return new Promise((resolve) => {
+    const child = spawn(cmd, args, { env: process.env })
+    const pipe = (buf: Buffer): void =>
+      buf
+        .toString()
+        .split('\n')
+        .map((l) => l.trimEnd())
+        .filter((l) => l.length > 0)
+        .forEach(onLine)
+    child.stdout.on('data', pipe)
+    child.stderr.on('data', pipe)
+    child.on('close', (code) => resolve(code ?? 1))
+    child.on('error', () => resolve(1))
+  })
 }
 
 let win: BrowserWindow | null = null
@@ -119,6 +149,26 @@ app.whenReady().then(() => {
 
   ipcMain.handle(IPC.checkUpdate, () => checkUpdate())
   ipcMain.handle(IPC.openExternal, (_e, url: string) => shell.openExternal(url))
+
+  // Internal update: refresh the tap and upgrade the cask via Homebrew, streaming the
+  // output live to the renderer. Works for brew-installed copies (the documented macOS
+  // path); non-brew installs get `brew-not-found` and fall back to the download page.
+  ipcMain.handle(IPC.selfUpdate, async () => {
+    const brew = findBrew()
+    if (!brew) return { ok: false, message: 'brew-not-found' }
+    const emit = (line: string): void => session.emit?.(IPC.selfUpdateOutput, line)
+    emit('$ brew update')
+    await runStreamed(brew, ['update', '--quiet'], emit)
+    emit(`$ brew upgrade --cask ${UPDATE_CASK}`)
+    const code = await runStreamed(brew, ['upgrade', '--cask', UPDATE_CASK], emit)
+    return { ok: code === 0, message: code === 0 ? 'ok' : 'upgrade-failed' }
+  })
+
+  ipcMain.handle(IPC.relaunchApp, () => {
+    app.relaunch()
+    isQuitting = true
+    app.quit()
+  })
 
   // Download a remote SD-card file to a local path the user picks. Returns the saved
   // path, or null if the user cancelled the save dialog.
