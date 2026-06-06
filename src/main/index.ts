@@ -228,6 +228,17 @@ app.whenReady().then(() => {
       status = applyWsMessage(raw, status)
       session.emit?.(IPC.statusUpdate, status)
       updateTray(status)
+      // WS tokens only carry core/game — they omit the system name (and disk).
+      // Re-read the full status from REST so the dashboard's System field stays in sync.
+      void rest
+        .getStatus()
+        .then((full) => {
+          if (!full.online) return
+          status = full
+          session.emit?.(IPC.statusUpdate, full)
+          updateTray(full)
+        })
+        .catch(() => {})
     })
     return true
   })

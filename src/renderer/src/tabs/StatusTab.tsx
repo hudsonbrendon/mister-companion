@@ -1,5 +1,5 @@
 import {
-  Cpu, Gamepad2, Server, Network, HardDrive, Activity, Clock, MemoryStick,
+  Cpu, Gamepad2, Network, HardDrive, Activity, Clock, MemoryStick,
   SquareTerminal, Thermometer, Globe, Database, ListTree
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -158,15 +158,17 @@ export function StatusTab(): JSX.Element {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <Thermometer
-                  className={`size-5 ${tempC != null && tempC >= 75 ? 'text-destructive' : 'text-muted-foreground'}`}
-                />
-                <div>
-                  <div className="text-xs uppercase text-muted-foreground">{t('status.temperature')}</div>
-                  <div className="font-mono font-semibold">{tempC != null ? `${tempC.toFixed(1)} °C` : '—'}</div>
+              {tempC != null && (
+                <div className="flex items-center gap-3">
+                  <Thermometer
+                    className={`size-5 ${tempC >= 75 ? 'text-destructive' : 'text-muted-foreground'}`}
+                  />
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">{t('status.temperature')}</div>
+                    <div className="font-mono font-semibold">{tempC.toFixed(1)} °C</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-center gap-3 lg:col-span-2">
                 <Cpu className="size-5 shrink-0 text-muted-foreground" />
@@ -189,14 +191,6 @@ export function StatusTab(): JSX.Element {
                 <div className="min-w-0">
                   <div className="text-xs uppercase text-muted-foreground">{t('status.kernel')}</div>
                   <div className="truncate font-mono font-semibold">{tel?.kernel ?? '—'}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Server className="size-5 text-muted-foreground" />
-                <div className="min-w-0">
-                  <div className="text-xs uppercase text-muted-foreground">{t('status.system')}</div>
-                  <div className="truncate font-mono font-semibold">{s.system ?? '—'}</div>
                 </div>
               </div>
 

@@ -14,7 +14,10 @@ export const PROBE_COMMAND =
   'echo cpumodel=$(awk -F": " "/Hardware/{print \\$2; exit}" /proc/cpuinfo 2>/dev/null); ' +
   'echo cpufreq=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq 2>/dev/null); ' +
   'echo kernel=$(uname -r); ' +
-  'echo temp=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)'
+  // thermal_zone0 is empty on the DE10-Nano; fall back to any hwmon temp sensor.
+  'echo temp=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || ' +
+  'cat /sys/class/hwmon/hwmon0/temp1_input 2>/dev/null || ' +
+  'cat /sys/class/hwmon/hwmon*/temp1_input 2>/dev/null | head -1)'
 
 function num(v: string | undefined): number | null {
   if (v === undefined || v === '') return null
