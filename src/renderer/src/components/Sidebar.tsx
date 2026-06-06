@@ -5,6 +5,7 @@ import { StatusDot } from './StatusDot'
 import { ConnectionBar } from '../ConnectionBar'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { VersionBadge } from './VersionBadge'
+import { ThemeSwitcher } from './ThemeSwitcher'
 import { useStatusContext } from '../hooks/status-context'
 
 export interface NavItem {
@@ -70,6 +71,7 @@ export function Sidebar({
       <div className="mt-auto flex flex-col gap-2">
         <LanguageSwitcher />
         <ConnectionBar localIp={window.location.hostname || '192.168.1.10'} />
+        <ThemeSwitcher />
         <VersionBadge />
       </div>
     </aside>
