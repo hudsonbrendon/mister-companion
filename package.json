@@ -1,6 +1,6 @@
 {
   "name": "mister-companion",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "description": "Cross-platform desktop companion for MiSTer FPGA",
   "author": "Hudson Brendon",
   "license": "MIT",
