@@ -3,10 +3,18 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { RATab } from './RATab'
 
 const raSummary = vi.fn().mockResolvedValue({
+  user: 'hudson',
+  userPic: null,
+  motto: 'Gotta go fast',
+  memberSince: '2018-01-02 00:00:00',
+  richPresence: 'Playing Sonic the Hedgehog',
+  status: 'Offline',
   hardcorePoints: 1234,
   softcorePoints: 50,
+  truePoints: 777,
   rank: 42,
   totalRanked: 100000,
+  recentlyPlayedCount: 1,
   currentGame: null,
   recentGames: [
     { gameId: 1, title: 'Sonic', console: 'Genesis', numAchieved: 5, numPossible: 50, percent: 10, iconUrl: null }
@@ -44,7 +52,7 @@ describe('RATab', () => {
     render(<RATab />)
     link()
     await waitFor(() => expect(raSummary).toHaveBeenCalledWith('hudson', 'key'))
-    await waitFor(() => screen.getByText(/1234/))
+    await waitFor(() => screen.getByText('Sonic'))
     expect(screen.getByText('Sonic')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText(/recent unlocks/i)).toBeInTheDocument())
     expect(screen.getByText('First Blood')).toBeInTheDocument()
@@ -64,7 +72,7 @@ describe('RATab', () => {
     localStorage.setItem('ra.apiKey', 'secret-key')
     render(<RATab />)
     await waitFor(() => expect(raSummary).toHaveBeenCalledWith('hudson', 'secret-key'))
-    await waitFor(() => screen.getByText(/1234/))
+    await waitFor(() => screen.getByText('Sonic'))
     // the add-account form is not shown; the linked header is
     expect(screen.queryByRole('button', { name: /^save$/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /refresh now/i })).toBeInTheDocument()
@@ -79,15 +87,40 @@ describe('RATab', () => {
     await waitFor(() => expect(raSummary).toHaveBeenCalledTimes(2))
   })
 
-  it('unlinks the account, clears persistence and returns to the add-account form', async () => {
+  it('asks for confirmation before unlinking and only clears on confirm', async () => {
     localStorage.setItem('ra.username', 'hudson')
     localStorage.setItem('ra.apiKey', 'secret-key')
     render(<RATab />)
-    await waitFor(() => screen.getByText(/1234/))
-    fireEvent.click(screen.getByRole('button', { name: /unlink/i }))
+    await waitFor(() => screen.getByText('Sonic'))
+
+    // clicking Unlink opens a confirmation modal but does NOT clear anything yet
+    fireEvent.click(screen.getByRole('button', { name: /^unlink$/i }))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+    expect(localStorage.getItem('ra.username')).toBe('hudson')
+
+    // confirming clears persistence and returns to the add-account form
+    fireEvent.click(screen.getByRole('button', { name: /yes, unlink/i }))
     expect(localStorage.getItem('ra.username')).toBeFalsy()
     expect(localStorage.getItem('ra.apiKey')).toBeFalsy()
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument()
+  })
+
+  it('shows the last-updated time after loading', async () => {
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => screen.getByText('Sonic'))
+    expect(screen.getByText(/updated/i)).toBeInTheDocument()
+  })
+
+  it('renders the enriched profile (motto + rich presence)', async () => {
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => screen.getByText('Sonic'))
+    expect(screen.getByText(/Gotta go fast/)).toBeInTheDocument()
+    expect(screen.getByText('Playing Sonic the Hedgehog')).toBeInTheDocument()
+    expect(screen.getByText(/777/)).toBeInTheDocument()
   })
 
   it('persists the linked account across a remount', async () => {

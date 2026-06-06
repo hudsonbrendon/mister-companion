@@ -20,10 +20,18 @@ interface RawGameProgress {
 
 interface RawRecent { GameID: number; Title: string; ConsoleName: string; ImageIcon?: string }
 interface RawSummary {
+  User?: string
+  UserPic?: string
+  Motto?: string
+  MemberSince?: string
+  RichPresenceMsg?: string
+  Status?: string
   TotalPoints?: number
   TotalSoftcorePoints?: number
+  TotalTruePoints?: number
   Rank?: number
   TotalRanked?: number
+  RecentlyPlayedCount?: number
   RecentlyPlayed?: RawRecent[]
   Awarded?: Record<string, { NumAchieved?: number; NumPossibleAchievements?: number }>
 }
@@ -59,11 +67,20 @@ export class RaWebClient {
         iconUrl: g.ImageIcon ? `${this.base}${g.ImageIcon}` : null
       }
     })
+    const nonEmpty = (s?: string): string | null => (s && s.trim() ? s : null)
     return {
+      user: raw.User ?? this.username,
+      userPic: raw.UserPic ? `${this.base}${raw.UserPic}` : null,
+      motto: nonEmpty(raw.Motto),
+      memberSince: nonEmpty(raw.MemberSince),
+      richPresence: nonEmpty(raw.RichPresenceMsg),
+      status: nonEmpty(raw.Status),
       hardcorePoints: raw.TotalPoints ?? 0,
       softcorePoints: raw.TotalSoftcorePoints ?? 0,
+      truePoints: raw.TotalTruePoints ?? 0,
       rank: raw.Rank ?? 0,
       totalRanked: raw.TotalRanked ?? 0,
+      recentlyPlayedCount: raw.RecentlyPlayedCount ?? recent.length,
       currentGame: recent[0] ?? null,
       recentGames: recent
     }

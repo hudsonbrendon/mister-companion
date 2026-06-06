@@ -55,10 +55,18 @@ export interface ScriptDef {
 }
 
 export interface RaSummary {
+  user: string
+  userPic: string | null
+  motto: string | null
+  memberSince: string | null
+  richPresence: string | null
+  status: string | null
   hardcorePoints: number
   softcorePoints: number
+  truePoints: number
   rank: number
   totalRanked: number
+  recentlyPlayedCount: number
   currentGame: RaGameProgress | null
   recentGames: RaGameProgress[]
 }

@@ -9,7 +9,10 @@ describe('RaWebClient', () => {
   it('maps the RA user summary payload', async () => {
     const mock = await startHttpMock([
       { method: 'GET', path: '/API/API_GetUserSummary.php?u=hudson&y=key&g=1&a=1', body: {
-        TotalPoints: 1234, TotalSoftcorePoints: 200, Rank: 42, TotalRanked: 100000,
+        User: 'hudson', UserPic: '/UserPic/hudson.png', Motto: 'GG', MemberSince: '2018-01-02 00:00:00',
+        RichPresenceMsg: 'Playing Sonic', Status: 'Offline',
+        TotalPoints: 1234, TotalSoftcorePoints: 200, TotalTruePoints: 5678, Rank: 42, TotalRanked: 100000,
+        RecentlyPlayedCount: 3,
         RecentlyPlayed: [{ GameID: 1, Title: 'Sonic', ConsoleName: 'Genesis', ImageIcon: '/i.png' }],
         Awarded: { '1': { NumAchieved: 5, NumPossibleAchievements: 50 } }
       } }
@@ -21,6 +24,15 @@ describe('RaWebClient', () => {
     expect(summary.rank).toBe(42)
     expect(summary.recentGames[0].title).toBe('Sonic')
     expect(summary.recentGames[0].numPossible).toBe(50)
+    // enriched profile fields
+    expect(summary.user).toBe('hudson')
+    expect(summary.userPic).toBe(`http://127.0.0.1:${mock.port}/UserPic/hudson.png`)
+    expect(summary.motto).toBe('GG')
+    expect(summary.memberSince).toBe('2018-01-02 00:00:00')
+    expect(summary.richPresence).toBe('Playing Sonic')
+    expect(summary.status).toBe('Offline')
+    expect(summary.truePoints).toBe(5678)
+    expect(summary.recentlyPlayedCount).toBe(3)
   })
 
   it('maps recent unlocks (array) with badge URLs', async () => {

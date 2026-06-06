@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Trophy, Medal, Award, CheckCircle2, Lock, RefreshCw, LinkIcon, Unlink } from 'lucide-react'
+import {
+  Trophy, Medal, Award, CheckCircle2, Lock, RefreshCw, LinkIcon, Unlink,
+  Star, Gamepad2, CalendarDays, Clock, History, AlertTriangle
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { RaSummary, RaRecentUnlock, RaGameDetail } from '@shared/types'
@@ -41,7 +44,9 @@ export function RATab(): JSX.Element {
   const [detail, setDetail] = useState<RaGameDetail | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { t } = useTranslation()
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const { t, i18n } = useTranslation()
 
   const load = useCallback(
     (acc: RaAccount) => {
@@ -53,6 +58,7 @@ export function RATab(): JSX.Element {
         .then(([s, r]) => {
           setSummary(s)
           setRecent(r)
+          setLastUpdated(Date.now())
         })
         .catch((e) => toast.error(t('ra.error', { msg: String(e) })))
         .finally(() => setLoading(false))
@@ -83,12 +89,17 @@ export function RATab(): JSX.Element {
       localStorage.removeItem(RA_USER_KEY)
       localStorage.removeItem(RA_KEY_KEY)
     }
+    setConfirmOpen(false)
     setAccount(null)
     setSummary(null)
     setRecent([])
+    setLastUpdated(null)
     setDraftUser('')
     setDraftKey('')
   }
+
+  const fmtTime = (ms: number): string =>
+    new Date(ms).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
   const openGame = (gameId: number) => {
     if (!account) return
@@ -142,17 +153,49 @@ export function RATab(): JSX.Element {
         </Card>
       ) : (
         <Card>
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Trophy className="size-4 text-pink" />
-              <span className="font-medium">{t('ra.linkedAs', { user: account.username })}</span>
+          <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              {summary?.userPic ? (
+                <img
+                  src={summary.userPic}
+                  alt=""
+                  className="size-14 rounded-full border-2 border-pink/40 object-cover"
+                  width={56}
+                  height={56}
+                />
+              ) : (
+                <div className="grid size-14 place-items-center rounded-full bg-muted">
+                  <Trophy className="size-6 text-pink" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <div className="truncate text-lg font-semibold">{summary?.user ?? account.username}</div>
+                {summary?.motto && (
+                  <div className="truncate text-sm italic text-muted-foreground">“{summary.motto}”</div>
+                )}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                  {summary?.status && <span>{summary.status}</span>}
+                  {summary?.memberSince && (
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="size-3" />
+                      {t('ra.memberSince', { date: summary.memberSince.split(' ')[0] })}
+                    </span>
+                  )}
+                  {lastUpdated != null && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="size-3" />
+                      {t('ra.lastUpdated', { time: fmtTime(lastUpdated) })}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2">
               <Button variant="outline" size="sm" onClick={() => load(account)} disabled={loading}>
                 <RefreshCw className={cn('mr-2 size-4', loading && 'animate-spin')} />
                 {t('ra.refreshNow')}
               </Button>
-              <Button variant="ghost" size="sm" onClick={unlink}>
+              <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(true)}>
                 <Unlink className="mr-2 size-4" /> {t('ra.unlink')}
               </Button>
             </div>
@@ -160,32 +203,70 @@ export function RATab(): JSX.Element {
         </Card>
       )}
 
+      {account && summary?.richPresence && (
+        <Card className="border-pink/30 bg-pink/5">
+          <CardContent className="flex items-center gap-3 p-4">
+            <Gamepad2 className="size-5 shrink-0 text-pink" />
+            <div className="min-w-0">
+              <div className="text-xs uppercase text-muted-foreground">{t('ra.nowPlaying')}</div>
+              <div className="truncate text-sm font-medium">{summary.richPresence}</div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {account && summary && (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
             <Card className="shadow-glow-pink">
-              <CardContent className="flex items-center gap-4 p-5">
-                <Trophy className="size-7 text-pink" />
-                <div>
+              <CardContent className="flex items-center gap-3 p-5">
+                <Trophy className="size-7 shrink-0 text-pink" />
+                <div className="min-w-0">
                   <div className="text-xs uppercase text-muted-foreground">{t('ra.hardcorePoints')}</div>
-                  <div className="font-mono text-2xl font-bold">{summary.hardcorePoints}</div>
+                  <div className="font-mono text-2xl font-bold">{summary.hardcorePoints.toLocaleString()}</div>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="flex items-center gap-4 p-5">
-                <Medal className="size-7 text-primary" />
-                <div>
+              <CardContent className="flex items-center gap-3 p-5">
+                <Star className="size-7 shrink-0 text-amber-400" />
+                <div className="min-w-0">
+                  <div className="text-xs uppercase text-muted-foreground">{t('ra.retroPoints')}</div>
+                  <div className="font-mono text-2xl font-bold">{summary.truePoints.toLocaleString()}</div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-5">
+                <Medal className="size-7 shrink-0 text-primary" />
+                <div className="min-w-0">
                   <div className="text-xs uppercase text-muted-foreground">{t('ra.rank')}</div>
-                  <div className="font-mono text-2xl font-bold">#{summary.rank}</div>
+                  <div className="font-mono text-2xl font-bold">
+                    #{summary.rank.toLocaleString()}
+                    {summary.totalRanked > 0 && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        / {summary.totalRanked.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="flex items-center gap-4 p-5">
-                <div>
+              <CardContent className="flex items-center gap-3 p-5">
+                <Award className="size-7 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
                   <div className="text-xs uppercase text-muted-foreground">{t('ra.softcore')}</div>
-                  <div className="font-mono text-2xl font-bold">{summary.softcorePoints}</div>
+                  <div className="font-mono text-2xl font-bold">{summary.softcorePoints.toLocaleString()}</div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-5">
+                <History className="size-7 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <div className="text-xs uppercase text-muted-foreground">{t('ra.recentlyPlayed')}</div>
+                  <div className="font-mono text-2xl font-bold">{summary.recentlyPlayedCount.toLocaleString()}</div>
                 </div>
               </CardContent>
             </Card>
@@ -291,6 +372,27 @@ export function RATab(): JSX.Element {
               ))}
             </ul>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-destructive" /> {t('ra.unlinkConfirmTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('ra.unlinkConfirmBody', { user: account?.username ?? '' })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              {t('ra.cancel')}
+            </Button>
+            <Button variant="destructive" onClick={unlink}>
+              <Unlink className="mr-2 size-4" /> {t('ra.unlinkConfirm')}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
