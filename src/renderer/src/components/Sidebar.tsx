@@ -70,8 +70,8 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto flex flex-col gap-2">
-        <LanguageSwitcher />
         <ConnectionBar localIp={window.location.hostname || '192.168.1.10'} />
+        <LanguageSwitcher />
         <ThemeSwitcher />
         <VersionBadge />
       </div>
