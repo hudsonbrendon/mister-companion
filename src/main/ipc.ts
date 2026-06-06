@@ -76,6 +76,16 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
 
   h(IPC.searchSystems, () => session.rest?.searchSystems() ?? Promise.resolve([]))
   h(IPC.listSystems, () => session.rest?.listSystems() ?? Promise.resolve([]))
+  h(IPC.listInis, () => session.rest?.listInis() ?? Promise.resolve({ active: 0, inis: [] }))
+  h(IPC.readIni, (id: number) => session.rest?.readIni(id) ?? Promise.resolve({}))
+  h(IPC.writeIni, (id: number, values: Record<string, string>) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.writeIni(id, values)
+  })
+  h(IPC.setActiveIni, (id: number) => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.setActiveIni(id)
+  })
   h(IPC.searchGames, (query: string, system: string) =>
     session.rest?.searchGames(query, system) ?? Promise.resolve([]))
   h(IPC.generateIndex, () => {

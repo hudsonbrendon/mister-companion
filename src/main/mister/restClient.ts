@@ -1,4 +1,4 @@
-import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot } from '@shared/types'
+import { MisterStatus, emptyStatus, GameResult, GameSystem, WallpapersData, Wallpaper, Screenshot, InisData } from '@shared/types'
 
 // mrext Remote REST API paths — verified against a real MiSTer (mrext Remote v0.4).
 // System info and the currently-running core/game live on two separate endpoints.
@@ -11,6 +11,7 @@ export const REST_PATHS = {
   search: '/api/games/search',
   searchSystems: '/api/games/search/systems',
   systems: '/api/systems',
+  inis: '/api/settings/inis',
   index: '/api/games/index',
   control: '/api/controls/keyboard',
   wallpapers: '/api/wallpapers',
@@ -127,6 +128,49 @@ export class RestClient {
   // Exit the running core back to the MiSTer main menu (no reboot).
   async backToMenu(): Promise<void> {
     await this.request(REST_PATHS.launchMenu, { method: 'POST' })
+  }
+
+  // List the MiSTer .ini config profiles (Main, CRT, …) and which one is active.
+  async listInis(): Promise<InisData> {
+    try {
+      const res = await this.request(REST_PATHS.inis)
+      if (!res.ok) return { active: 0, inis: [] }
+      const b = (await res.json()) as InisData
+      return { active: b.active ?? 0, inis: b.inis ?? [] }
+    } catch {
+      return { active: 0, inis: [] }
+    }
+  }
+
+  // Read one .ini profile as a flat key→value dictionary (keys starting with __ are
+  // read-only device metadata, e.g. __hostname).
+  async readIni(id: number): Promise<Record<string, string>> {
+    try {
+      const res = await this.request(`${REST_PATHS.inis}/${id}`)
+      if (!res.ok) return {}
+      return (await res.json()) as Record<string, string>
+    } catch {
+      return {}
+    }
+  }
+
+  // Write key→value pairs into a profile. The API MERGES (unsent keys are preserved),
+  // so callers should send only the keys they changed.
+  async writeIni(id: number, values: Record<string, string>): Promise<void> {
+    await this.request(`${REST_PATHS.inis}/${id}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(values)
+    })
+  }
+
+  // Switch the active profile (id 1-4).
+  async setActiveIni(id: number): Promise<void> {
+    await this.request(REST_PATHS.inis, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ active: id })
+    })
   }
 
   async searchSystems(): Promise<GameSystem[]> {

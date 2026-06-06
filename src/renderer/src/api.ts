@@ -1,4 +1,4 @@
-import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry, GameResult, GameSystem, IndexStatus, RaRecentUnlock, RaGameDetail, UpdateInfo, WallpapersData, Screenshot } from '@shared/types'
+import type { MisterStatus, MisterProfile, ScriptDef, RaSummary, SmbEntry, DiscoveredDevice, SshTelemetry, GameResult, GameSystem, IndexStatus, RaRecentUnlock, RaGameDetail, UpdateInfo, WallpapersData, Screenshot, InisData } from '@shared/types'
 
 export interface RendererApi {
   listProfiles(): Promise<MisterProfile[]>
@@ -21,6 +21,10 @@ export interface RendererApi {
   onScriptOutput(cb: (o: { id: string; chunk: string }) => void): () => void
   searchSystems(): Promise<GameSystem[]>
   listSystems(): Promise<GameSystem[]>
+  listInis(): Promise<InisData>
+  readIni(id: number): Promise<Record<string, string>>
+  writeIni(id: number, values: Record<string, string>): Promise<void>
+  setActiveIni(id: number): Promise<void>
   searchGames(query: string, system: string): Promise<GameResult[]>
   generateIndex(): Promise<void>
   onIndexStatus(cb: (s: IndexStatus) => void): () => void

@@ -149,6 +149,18 @@ export interface GameSystem {
   category?: string
 }
 
+export interface IniProfile {
+  id: number
+  displayName: string
+  filename: string
+  path: string
+}
+
+export interface InisData {
+  active: number
+  inis: IniProfile[]
+}
+
 export interface IndexStatus {
   exists: boolean
   indexing: boolean
@@ -177,6 +189,10 @@ export const IPC = {
   searchGames: 'mister:searchGames',
   searchSystems: 'mister:searchSystems',
   listSystems: 'mister:listSystems',
+  listInis: 'mister:listInis',
+  readIni: 'mister:readIni',
+  writeIni: 'mister:writeIni',
+  setActiveIni: 'mister:setActiveIni',
   generateIndex: 'mister:generateIndex',
   sendKey: 'mister:sendKey',
   raRecent: 'mister:raRecent',
