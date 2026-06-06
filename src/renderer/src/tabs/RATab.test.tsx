@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { RATab } from './RATab'
 
@@ -23,6 +23,12 @@ const raGameProgress = vi.fn().mockResolvedValue({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
+const link = (user = 'hudson', key = 'key') => {
+  fireEvent.change(screen.getByPlaceholderText(/username/i), { target: { value: user } })
+  fireEvent.change(screen.getByPlaceholderText(/api key/i), { target: { value: key } })
+  fireEvent.click(screen.getByRole('button', { name: /save/i }))
+}
+
 beforeEach(() => {
   raSummary.mockClear()
   raRecent.mockClear()
@@ -31,40 +37,68 @@ beforeEach(() => {
   ;(globalThis as any).window.api = { raSummary, raRecent, raGameProgress }
 })
 
+afterEach(() => cleanup())
+
 describe('RATab', () => {
-  it('fetches and renders the RA summary + recent unlocks after entering credentials', async () => {
+  it('links an account and fetches the summary + recent unlocks', async () => {
     render(<RATab />)
-    fireEvent.change(screen.getByPlaceholderText(/username/i), { target: { value: 'hudson' } })
-    fireEvent.change(screen.getByPlaceholderText(/api key/i), { target: { value: 'key' } })
-    fireEvent.click(screen.getByRole('button', { name: /load/i }))
-    expect(raSummary).toHaveBeenCalledWith('hudson', 'key')
+    link()
+    await waitFor(() => expect(raSummary).toHaveBeenCalledWith('hudson', 'key'))
     await waitFor(() => screen.getByText(/1234/))
     expect(screen.getByText('Sonic')).toBeInTheDocument()
-    // recent unlocks section
     await waitFor(() => expect(screen.getByText(/recent unlocks/i)).toBeInTheDocument())
     expect(screen.getByText('First Blood')).toBeInTheDocument()
   })
 
   it('opens the achievement dialog when a game is clicked', async () => {
     render(<RATab />)
-    fireEvent.change(screen.getByPlaceholderText(/username/i), { target: { value: 'hudson' } })
-    fireEvent.change(screen.getByPlaceholderText(/api key/i), { target: { value: 'key' } })
-    fireEvent.click(screen.getByRole('button', { name: /load/i }))
+    link()
     await waitFor(() => screen.getByText('Sonic'))
     fireEvent.click(screen.getByText('Sonic'))
     expect(raGameProgress).toHaveBeenCalledWith('hudson', 'key', 1)
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
   })
 
-  it('persists credentials and restores them after the tab is reopened', async () => {
+  it('auto-loads data on mount when an account is already linked, without clicking', async () => {
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => expect(raSummary).toHaveBeenCalledWith('hudson', 'secret-key'))
+    await waitFor(() => screen.getByText(/1234/))
+    // the add-account form is not shown; the linked header is
+    expect(screen.queryByRole('button', { name: /^save$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /refresh now/i })).toBeInTheDocument()
+  })
+
+  it('refetches when "Refresh now" is clicked', async () => {
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => expect(raSummary).toHaveBeenCalledTimes(1))
+    fireEvent.click(screen.getByRole('button', { name: /refresh now/i }))
+    await waitFor(() => expect(raSummary).toHaveBeenCalledTimes(2))
+  })
+
+  it('unlinks the account, clears persistence and returns to the add-account form', async () => {
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => screen.getByText(/1234/))
+    fireEvent.click(screen.getByRole('button', { name: /unlink/i }))
+    expect(localStorage.getItem('ra.username')).toBeFalsy()
+    expect(localStorage.getItem('ra.apiKey')).toBeFalsy()
+    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument()
+  })
+
+  it('persists the linked account across a remount', async () => {
     const { unmount } = render(<RATab />)
-    fireEvent.change(screen.getByPlaceholderText(/username/i), { target: { value: 'hudson' } })
-    fireEvent.change(screen.getByPlaceholderText(/api key/i), { target: { value: 'secret-key' } })
+    link('hudson', 'secret-key')
+    await waitFor(() => expect(raSummary).toHaveBeenCalled())
     unmount()
     cleanup()
+    raSummary.mockClear()
 
     render(<RATab />)
-    expect(screen.getByPlaceholderText(/username/i)).toHaveValue('hudson')
-    expect(screen.getByPlaceholderText(/api key/i)).toHaveValue('secret-key')
+    await waitFor(() => expect(raSummary).toHaveBeenCalledWith('hudson', 'secret-key'))
   })
 })

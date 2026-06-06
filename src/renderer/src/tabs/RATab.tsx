@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Trophy, Medal, Award, CheckCircle2, Lock } from 'lucide-react'
+import { Trophy, Medal, Award, CheckCircle2, Lock, RefreshCw, LinkIcon, Unlink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { RaSummary, RaRecentUnlock, RaGameDetail } from '@shared/types'
@@ -12,19 +12,30 @@ import { ScrollArea } from '../components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog'
 import { cn } from '../lib/utils'
 
-// RA credentials are persisted locally so they survive closing the tab / app. The mrext
-// API has no RA store; we keep our own in localStorage, mirroring theme.ts / library-store.ts.
+// A linked RA account is persisted locally so it survives closing the tab / app and the
+// data reloads automatically. The mrext API has no RA store; we keep our own in
+// localStorage, mirroring theme.ts / library-store.ts.
 const RA_USER_KEY = 'ra.username'
 const RA_KEY_KEY = 'ra.apiKey'
+// Auto-sync interval — refetch the linked account's progress periodically (real-time-ish).
+const REFRESH_MS = 60_000
 
-const readStored = (key: string): string => {
-  if (typeof localStorage === 'undefined') return ''
-  return localStorage.getItem(key) ?? ''
+interface RaAccount {
+  username: string
+  apiKey: string
+}
+
+const readAccount = (): RaAccount | null => {
+  if (typeof localStorage === 'undefined') return null
+  const username = localStorage.getItem(RA_USER_KEY) ?? ''
+  const apiKey = localStorage.getItem(RA_KEY_KEY) ?? ''
+  return username && apiKey ? { username, apiKey } : null
 }
 
 export function RATab(): JSX.Element {
-  const [username, setUsername] = useState(() => readStored(RA_USER_KEY))
-  const [apiKey, setApiKey] = useState(() => readStored(RA_KEY_KEY))
+  const [account, setAccount] = useState<RaAccount | null>(() => readAccount())
+  const [draftUser, setDraftUser] = useState('')
+  const [draftKey, setDraftKey] = useState('')
   const [summary, setSummary] = useState<RaSummary | null>(null)
   const [recent, setRecent] = useState<RaRecentUnlock[]>([])
   const [detail, setDetail] = useState<RaGameDetail | null>(null)
@@ -32,32 +43,59 @@ export function RATab(): JSX.Element {
   const [loading, setLoading] = useState(false)
   const { t } = useTranslation()
 
-  useEffect(() => {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(RA_USER_KEY, username)
-  }, [username])
-  useEffect(() => {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(RA_KEY_KEY, apiKey)
-  }, [apiKey])
+  const load = useCallback(
+    (acc: RaAccount) => {
+      setLoading(true)
+      return Promise.all([
+        api.raSummary(acc.username, acc.apiKey),
+        api.raRecent(acc.username, acc.apiKey, 1440).catch(() => [])
+      ])
+        .then(([s, r]) => {
+          setSummary(s)
+          setRecent(r)
+        })
+        .catch((e) => toast.error(t('ra.error', { msg: String(e) })))
+        .finally(() => setLoading(false))
+    },
+    [t]
+  )
 
-  const load = () => {
-    setLoading(true)
-    Promise.all([
-      api.raSummary(username, apiKey),
-      api.raRecent(username, apiKey, 1440).catch(() => [])
-    ])
-      .then(([s, r]) => {
-        setSummary(s)
-        setRecent(r)
-      })
-      .catch((e) => toast.error(t('ra.error', { msg: String(e) })))
-      .finally(() => setLoading(false))
+  // Auto-load on mount / whenever an account becomes linked, then poll for live updates.
+  useEffect(() => {
+    if (!account) return
+    load(account)
+    const id = setInterval(() => load(account), REFRESH_MS)
+    return () => clearInterval(id)
+  }, [account, load])
+
+  const link = () => {
+    const acc = { username: draftUser.trim(), apiKey: draftKey.trim() }
+    if (!acc.username || !acc.apiKey) return
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(RA_USER_KEY, acc.username)
+      localStorage.setItem(RA_KEY_KEY, acc.apiKey)
+    }
+    setAccount(acc)
+  }
+
+  const unlink = () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(RA_USER_KEY)
+      localStorage.removeItem(RA_KEY_KEY)
+    }
+    setAccount(null)
+    setSummary(null)
+    setRecent([])
+    setDraftUser('')
+    setDraftKey('')
   }
 
   const openGame = (gameId: number) => {
+    if (!account) return
     setDetail(null)
     setDetailOpen(true)
     api
-      .raGameProgress(username, apiKey, gameId)
+      .raGameProgress(account.username, account.apiKey, gameId)
       .then(setDetail)
       .catch((e) => {
         setDetailOpen(false)
@@ -72,31 +110,57 @@ export function RATab(): JSX.Element {
         <p className="text-sm text-muted-foreground">{t('ra.subtitle')}</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('ra.credentials')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Input
-            className="w-48"
-            placeholder={t('ra.username')}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <Input
-            className="w-48"
-            type="password"
-            placeholder={t('ra.apiKey')}
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-          <Button onClick={load} disabled={!username || !apiKey || loading}>
-            {loading ? t('ra.loading') : t('ra.load')}
-          </Button>
-        </CardContent>
-      </Card>
+      {!account ? (
+        <Card className="mx-auto max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-lg">{t('ra.addAccount')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4">
+            <Input
+              className="h-11 w-full max-w-xs text-center text-base"
+              placeholder={t('ra.username')}
+              value={draftUser}
+              onChange={(e) => setDraftUser(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && link()}
+            />
+            <Input
+              className="h-11 w-full max-w-xs text-center text-base"
+              type="password"
+              placeholder={t('ra.apiKey')}
+              value={draftKey}
+              onChange={(e) => setDraftKey(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && link()}
+            />
+            <Button
+              className="w-full max-w-xs"
+              onClick={link}
+              disabled={!draftUser.trim() || !draftKey.trim()}
+            >
+              <LinkIcon className="mr-2 size-4" /> {t('ra.save')}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Trophy className="size-4 text-pink" />
+              <span className="font-medium">{t('ra.linkedAs', { user: account.username })}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => load(account)} disabled={loading}>
+                <RefreshCw className={cn('mr-2 size-4', loading && 'animate-spin')} />
+                {t('ra.refreshNow')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={unlink}>
+                <Unlink className="mr-2 size-4" /> {t('ra.unlink')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {summary && (
+      {account && summary && (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Card className="shadow-glow-pink">
