@@ -26,3 +26,7 @@ export function memPercent(availKb: number | null, totalKb: number | null): numb
   if (!availKb || !totalKb || totalKb <= 0) return 0
   return Math.min(100, Math.round(((totalKb - availKb) / totalKb) * 100))
 }
+
+export function formatLoad(n: number | null): string {
+  return n === null || n === undefined ? '—' : n.toFixed(2)
+}

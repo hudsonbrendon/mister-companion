@@ -34,9 +34,17 @@ export interface MisterProfile {
 export interface SshTelemetry {
   uptimeSeconds: number | null
   loadAvg: number | null
+  load5: number | null
+  load15: number | null
   memTotalKb: number | null
   memFreeKb: number | null
+  swapTotalKb: number | null
+  swapFreeKb: number | null
   temperatureC: number | null
+  cpuCount: number | null
+  cpuModel: string | null
+  cpuMhz: number | null
+  procCount: number | null
   kernel: string | null
   raw: Record<string, string>
 }
