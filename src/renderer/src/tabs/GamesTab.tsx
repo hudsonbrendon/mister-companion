@@ -10,7 +10,10 @@ import {
   Monitor,
   Cpu,
   Boxes,
-  Info
+  Info,
+  Star,
+  Shuffle,
+  Clock
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
@@ -19,6 +22,8 @@ import { Card, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { ScrollArea } from '../components/ui/scroll-area'
+import { cn } from '../lib/utils'
+import { getRecents, addRecent, getFavorites, toggleFavorite } from '../lib/library-store'
 import {
   Dialog,
   DialogContent,
@@ -61,6 +66,9 @@ export function GamesTab(): JSX.Element {
   const [loadingGames, setLoadingGames] = useState(false)
 
   const [detail, setDetail] = useState<GameResult | null>(null)
+  const [recents, setRecents] = useState<GameResult[]>(getRecents())
+  const [favorites, setFavorites] = useState<GameResult[]>(getFavorites())
+  const favSet = useMemo(() => new Set(favorites.map((g) => g.path)), [favorites])
 
   const globalDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const filterDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -145,9 +153,27 @@ export function GamesTab(): JSX.Element {
     await api.generateIndex()
   }
 
-  const launch = (path: string): void => {
-    void api.launchGame(path)
-    toast.success(t('control.launchSent'), { description: path })
+  const launch = (g: GameResult): void => {
+    void api.launchGame(g.path)
+    setRecents(addRecent(g))
+    toast.success(t('control.launchSent'), { description: g.name })
+  }
+
+  const toggleFav = (g: GameResult): void => {
+    setFavorites(toggleFavorite(g))
+  }
+
+  // Launch a random game: try up to 5 random platforms until one has games.
+  const random = async (): Promise<void> => {
+    if (systems.length === 0) return
+    for (let i = 0; i < 5; i++) {
+      const sys = systems[Math.floor(Math.random() * systems.length)]
+      const pool = await api.searchGames('', sys.id)
+      if (pool.length > 0) {
+        launch(pool[Math.floor(Math.random() * pool.length)])
+        return
+      }
+    }
   }
 
   const catLabel = (cat: string): string => t(`games.cat.${cat.toLowerCase()}`, { defaultValue: cat })
@@ -205,14 +231,42 @@ export function GamesTab(): JSX.Element {
         </span>
       </button>
       <Button
+        size="icon"
+        variant="ghost"
+        className={cn(
+          'size-7 shrink-0',
+          favSet.has(r.path) ? 'text-primary' : 'opacity-0 group-hover:opacity-100'
+        )}
+        onClick={() => toggleFav(r)}
+        aria-label={`${t('games.favorite')} ${r.name}`}
+      >
+        <Star className={cn('size-4', favSet.has(r.path) && 'fill-current')} />
+      </Button>
+      <Button
         size="sm"
         variant="ghost"
         className="mr-2 shrink-0 opacity-0 group-hover:opacity-100"
-        onClick={() => launch(r.path)}
+        onClick={() => launch(r)}
       >
         <Play className="size-3" /> {t('games.launch')}
       </Button>
     </li>
+  )
+
+  // Compact card used by the Recents / Favorites strips.
+  const miniCard = (r: GameResult, key: string): JSX.Element => (
+    <button
+      key={key}
+      onClick={() => launch(r)}
+      title={r.name}
+      className="flex items-center gap-2 rounded-lg border border-border bg-card/60 px-3 py-2 text-left text-sm transition-colors hover:border-primary/50 hover:bg-accent"
+    >
+      <Play className="size-3.5 shrink-0 text-primary" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate">{r.name}</span>
+        <span className="block truncate text-xs text-muted-foreground">{r.systemName}</span>
+      </span>
+    </button>
   )
 
   const capHint = (n: number): JSX.Element | null =>
@@ -224,15 +278,20 @@ export function GamesTab(): JSX.Element {
     <div className="space-y-6">
       {header}
 
-      {/* Global search */}
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder={t('games.searchAll')}
-          value={globalQuery}
-          onChange={(e) => setGlobalQuery(e.target.value)}
-        />
+      {/* Global search + random */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder={t('games.searchAll')}
+            value={globalQuery}
+            onChange={(e) => setGlobalQuery(e.target.value)}
+          />
+        </div>
+        <Button variant="outline" onClick={random} title={t('games.random')}>
+          <Shuffle className="size-4" /> {t('games.random')}
+        </Button>
       </div>
 
       {globalQuery.trim() ? (
@@ -287,8 +346,28 @@ export function GamesTab(): JSX.Element {
           </CardContent>
         </Card>
       ) : (
-        /* --- Platforms grouped by category --- */
+        /* --- Platforms grouped by category, with Favorites + Recents on top --- */
         <div className="space-y-6">
+          {favorites.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Star className="size-3.5 fill-current text-primary" /> {t('games.favorites')}
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {favorites.slice(0, 9).map((r, i) => miniCard(r, `fav-${r.path}-${i}`))}
+              </div>
+            </div>
+          )}
+          {recents.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Clock className="size-3.5" /> {t('games.recents')}
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {recents.slice(0, 6).map((r, i) => miniCard(r, `rec-${r.path}-${i}`))}
+              </div>
+            </div>
+          )}
           {indexed === null ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
@@ -353,7 +432,15 @@ export function GamesTab(): JSX.Element {
                 <DialogClose asChild>
                   <Button variant="ghost">{t('games.close')}</Button>
                 </DialogClose>
-                <Button onClick={() => detail && launch(detail.path)}>
+                <Button
+                  variant="outline"
+                  onClick={() => detail && toggleFav(detail)}
+                  className={cn(favSet.has(detail.path) && 'text-primary')}
+                >
+                  <Star className={cn('size-4', favSet.has(detail.path) && 'fill-current')} />
+                  {favSet.has(detail.path) ? t('games.favorited') : t('games.favorite')}
+                </Button>
+                <Button onClick={() => detail && launch(detail)}>
                   <Play /> {t('games.launch')}
                 </Button>
               </div>

@@ -6,6 +6,7 @@ export const REST_PATHS = {
   sysinfo: '/api/sysinfo',
   playing: '/api/games/playing',
   launch: '/api/games/launch',
+  launchMenu: '/api/launch/menu',
   reboot: '/api/settings/system/reboot',
   search: '/api/games/search',
   searchSystems: '/api/games/search/systems',
@@ -121,6 +122,11 @@ export class RestClient {
 
   async reboot(): Promise<void> {
     await this.request(REST_PATHS.reboot, { method: 'POST' })
+  }
+
+  // Exit the running core back to the MiSTer main menu (no reboot).
+  async backToMenu(): Promise<void> {
+    await this.request(REST_PATHS.launchMenu, { method: 'POST' })
   }
 
   async searchSystems(): Promise<GameSystem[]> {

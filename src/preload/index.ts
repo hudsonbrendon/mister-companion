@@ -7,6 +7,7 @@ const api = {
   deleteProfile: (id: string) => ipcRenderer.invoke(IPC.deleteProfile, id),
   connect: (p: unknown) => ipcRenderer.invoke(IPC.connect, p),
   disconnect: () => ipcRenderer.invoke(IPC.disconnect),
+  backToMenu: () => ipcRenderer.invoke(IPC.backToMenu),
   getStatus: () => ipcRenderer.invoke(IPC.getStatus),
   launchGame: (path: string) => ipcRenderer.invoke(IPC.launchGame, path),
   reboot: () => ipcRenderer.invoke(IPC.reboot),

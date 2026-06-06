@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { TooltipProvider } from './components/ui/tooltip'
 import { Toaster } from './components/ui/sonner'
 import { Sidebar, NAV } from './components/Sidebar'
 import { UpdateBanner } from './components/UpdateBanner'
+import { CommandPalette } from './components/CommandPalette'
 import { StatusTab } from './tabs/StatusTab'
 import { GamesTab } from './tabs/GamesTab'
 import { ControlTab } from './tabs/ControlTab'
@@ -26,11 +27,26 @@ const SCREENS: Record<string, () => JSX.Element> = {
 
 export function App(): JSX.Element {
   const [active, setActive] = useState<string>('status')
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const { t } = useTranslation()
   const label = t(NAV.find((n) => n.id === active)?.i18nKey ?? '')
+
+  // Global Cmd/Ctrl+K toggles the quick-launch palette.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <TooltipProvider delayDuration={200}>
       <StatusProvider>
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
         <div className="flex h-screen w-screen overflow-hidden">
           <Sidebar active={active} onSelect={setActive} />
           <main role="tabpanel" aria-label={label} className="flex flex-1 flex-col overflow-hidden">

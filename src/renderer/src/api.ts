@@ -8,6 +8,7 @@ export interface RendererApi {
   disconnect(): Promise<boolean>
   getStatus(): Promise<MisterStatus>
   launchGame(path: string): Promise<void>
+  backToMenu(): Promise<void>
   reboot(): Promise<void>
   discover(localIp: string): Promise<DiscoveredDevice[]>
   sshProbe(): Promise<SshTelemetry>

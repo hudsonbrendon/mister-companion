@@ -166,6 +166,7 @@ export const IPC = {
   disconnect: 'mister:disconnect',
   getStatus: 'mister:getStatus',
   launchGame: 'mister:launchGame',
+  backToMenu: 'mister:backToMenu',
   reboot: 'mister:reboot',
   discover: 'mister:discover',
   sshProbe: 'mister:sshProbe',

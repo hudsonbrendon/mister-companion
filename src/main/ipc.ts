@@ -43,6 +43,10 @@ export function createHandlers(ipcMain: Pick<IpcMain, 'handle'>, session: Sessio
     if (!session.rest) throw new Error('not connected')
     return session.rest.reboot()
   })
+  h(IPC.backToMenu, () => {
+    if (!session.rest) throw new Error('not connected')
+    return session.rest.backToMenu()
+  })
 
   h(IPC.discover, async (localIp: string) => {
     const port = session.current?.restPort ?? 8182

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   Gamepad2,
   ChevronUp,
@@ -12,20 +13,50 @@ import {
   User,
   RotateCcw,
   Volume2,
-  VolumeX
+  VolumeX,
+  LogOut
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 
 // Sends mrext virtual-keyboard keys to the running core / MiSTer OSD. Rendered large and
-// centered as the focus of the Control tab.
+// centered as the focus of the Control tab, and driveable from the keyboard.
+const KEY_MAP: Record<string, string> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  Enter: 'enter',
+  Backspace: 'back'
+}
+
 export function RemoteControl(): JSX.Element {
   const { t } = useTranslation()
   const press = (key: string) => () => {
     void api.sendKey(key)
   }
+
+  const toMenu = (): void => {
+    void api.backToMenu()
+    toast.success(t('control.backToMenuSent'))
+  }
+
+  // Drive the remote from the physical keyboard (when not typing in a field).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      const el = document.activeElement
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return
+      const mapped = KEY_MAP[e.key]
+      if (!mapped) return
+      e.preventDefault()
+      void api.sendKey(mapped)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
     <Card className="mx-auto w-full max-w-xl">
@@ -35,6 +66,10 @@ export function RemoteControl(): JSX.Element {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-8 pb-8">
+        <Button variant="outline" className="w-full max-w-sm" onClick={toMenu}>
+          <LogOut className="size-4" /> {t('control.backToMenu')}
+        </Button>
+
         {/* D-pad */}
         <div className="grid grid-cols-3 gap-2">
           <span />
