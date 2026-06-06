@@ -123,6 +123,16 @@ describe('RATab', () => {
     expect(screen.getByText(/777/)).toBeInTheDocument()
   })
 
+  it('derives presence from rich presence, not the unreliable Status field', async () => {
+    // mock has status:'Offline' but an active rich-presence message → should read Playing
+    localStorage.setItem('ra.username', 'hudson')
+    localStorage.setItem('ra.apiKey', 'secret-key')
+    render(<RATab />)
+    await waitFor(() => screen.getByText('Sonic'))
+    expect(screen.getByText('Playing')).toBeInTheDocument()
+    expect(screen.queryByText('Offline')).not.toBeInTheDocument()
+  })
+
   it('persists the linked account across a remount', async () => {
     const { unmount } = render(<RATab />)
     link('hudson', 'secret-key')

@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Progress } from '../components/ui/progress'
+import { StatusDot } from '../components/StatusDot'
 import { ScrollArea } from '../components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog'
 import { cn } from '../lib/utils'
@@ -101,6 +102,12 @@ export function RATab(): JSX.Element {
   const fmtTime = (ms: number): string =>
     new Date(ms).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
+  // RA's GetUserSummary `Status` field is legacy and reads "Offline" even while playing,
+  // so we derive presence from the rich-presence message instead — that's what actually
+  // updates as you play. Empty / "Unknown" / "Offline" / "Not playing" mean idle.
+  const rp = summary?.richPresence?.trim() ?? ''
+  const playing = rp.length > 0 && !/^(unknown|offline|not playing|not currently)/i.test(rp)
+
   const openGame = (gameId: number) => {
     if (!account) return
     setDetail(null)
@@ -174,7 +181,10 @@ export function RATab(): JSX.Element {
                   <div className="truncate text-sm italic text-muted-foreground">“{summary.motto}”</div>
                 )}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                  {summary?.status && <span>{summary.status}</span>}
+                  <span className="flex items-center gap-1.5">
+                    <StatusDot online={playing} />
+                    {playing ? t('ra.playing') : t('ra.offlineStatus')}
+                  </span>
                   {summary?.memberSince && (
                     <span className="flex items-center gap-1">
                       <CalendarDays className="size-3" />
