@@ -27,4 +27,23 @@ describe('applyWsMessage', () => {
     expect(applyWsMessage('no-colon-here', start)).toEqual(start)
     expect(applyWsMessage('somethingElse:value', start)).toEqual(start)
   })
+
+  it('strips the system prefix and extension from gameRunning (system/file)', () => {
+    const start = { ...emptyStatus(), online: true, core: 'SNES' }
+    expect(applyWsMessage('gameRunning:SNES/Chrono Trigger (USA).sfc', start).game).toBe('Chrono Trigger (USA)')
+  })
+
+  it('keeps the bare arcade name from gameRunning', () => {
+    const start = { ...emptyStatus(), online: true, core: 'sf2' }
+    expect(applyWsMessage('gameRunning:sf2', start).game).toBe('sf2')
+  })
+
+  it('clears the stale game and system when a different core starts', () => {
+    const start = { ...emptyStatus(), online: true, core: 'SNES', system: 'SNES', game: 'Zelda' }
+    const next = applyWsMessage('coreRunning:GBA', start)
+    expect(next.core).toBe('GBA')
+    expect(next.game).toBeNull()
+    expect(next.system).toBeNull()
+    expect(applyWsMessage('coreRunning:SNES', start)).toEqual(start)
+  })
 })
