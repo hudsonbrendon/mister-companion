@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { emptyStatus } from '@shared/types'
+import { emptyStatus, type MisterStatus } from '@shared/types'
 import { applyWsMessage } from './wsReducer'
 
 describe('applyWsMessage', () => {
@@ -45,5 +45,14 @@ describe('applyWsMessage', () => {
     expect(next.game).toBeNull()
     expect(next.system).toBeNull()
     expect(applyWsMessage('coreRunning:SNES', start)).toEqual(start)
+  })
+
+  it('keeps the game when coreRunning follows gameRunning on launch', () => {
+    let s: MisterStatus = { ...emptyStatus(), online: true, core: 'sf2' }
+    for (const frame of ['coreRunning:', 'gameRunning:SNES/Dr. Mario.sfc', 'coreRunning:SNES']) {
+      s = applyWsMessage(frame, s)
+    }
+    expect(s.core).toBe('SNES')
+    expect(s.game).toBe('Dr. Mario')
   })
 })

@@ -15,7 +15,9 @@ export function applyWsMessage(message: string, status: MisterStatus): MisterSta
   switch (key) {
     case 'coreRunning':
       if (value === status.core) return status
-      // A new core means the previous system/game no longer apply.
+      // A launch from the menu sends gameRunning before coreRunning: keep that game.
+      if (status.core === null) return { ...status, core: value }
+      // Switching from another core: the previous system/game no longer apply.
       return { ...status, core: value, system: null, game: null }
     case 'gameRunning': {
       if (value === null) return { ...status, game: null }
